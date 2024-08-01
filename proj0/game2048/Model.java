@@ -115,7 +115,24 @@ public class Model extends Observable {
         // changed local variable to true.
         // Check value starting from row3, keep track of current row with crow;
         for (int col = 0; col < size(); col++) {
-            handleCol(col);
+            for (int row = size()-1; row > 0; row--) {
+                Tile t = board.tile(col, row);
+                Tile nt = nextTile(board, col, row-1);
+                if (nt == null) break;
+                else {
+                    // Move next not-null tile into current position if no value in current tile or both tiles
+                    // have same value
+                    if (t == null) {
+                        board.move(col, row, nt);
+                        changed = true;
+                        row += 1;
+                    } else if (nt.value() == t.value()) {
+                        board.move(col, row, nt);
+                        changed = true;
+                        score = score + nt.value() * 2;
+                    }
+                }
+            }
         }
 
         checkGameOver();
@@ -125,42 +142,13 @@ public class Model extends Observable {
         return changed;
     }
 
-    private void handleCol(int col) {
-        int toRow = 0;
-        int cValue = 0;
-        boolean merged = false;
-        for (int crow = size(); crow >= 0; crow--) {
-            Tile t = this.board.tile(col, crow);
-            //Current tile is not empty
-            if (t != null) {
-                //Only empty tile exists above
-                if (cValue == 0 && toRow != 0) t.move(col, toRow);
-                //Tile with same value exists above
-                else if (cValue != 0 && t.value()==cValue) {
-                    t.move(col, toRow);
-                    merged = true;
-                    score += cValue * 2;
-                    toRow = 0;
-                }
-                cValue = t.value();
-                toRow = crow;
-            }
-            //Current tile is empty
-            if (t == null) {
-                //Empty tile exists above
-                if (toRow != 0 && cValue == 0) {
-                    continue;
-                }
-                //None-empty tile exists above
-                if (toRow != 0 && cValue != 0) {
-                    continue;
-                }
-                //No tile exists above
-                toRow = crow;
-                cValue = 0;
-            }
+    // Find next none-empty tile in column COL and return it, return null if not found
+    private Tile nextTile(Board b, int col, int row) {
+        for (int nextRow = row; nextRow >= 0; nextRow--) {
+            Tile t = b.tile(col, nextRow);
+            if (t != null) return t;
         }
-
+        return null;
     }
 
     /** Checks if the game is over and sets the gameOver variable
