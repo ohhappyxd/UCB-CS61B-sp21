@@ -1,7 +1,6 @@
 package deque;
 
 public class ArrayDeque<T> {
-
     private int size;
     private int totalSize;
     private T[] items;
@@ -13,33 +12,49 @@ public class ArrayDeque<T> {
         totalSize = 8;
         items = (T[]) new Object[totalSize];
         size = 0;
-        start = totalSize / 2;
-        nextFirst = start;
-        nextLast = start + 1;
+        start = 0;
+        nextFirst = totalSize / 2;
+        nextLast = totalSize / 2 + 1;
     }
+
+    /** @param current the current nextFirst or nextLast
+     *  Returns the index previous to the given one. Array is treated as circular */
+    private int returnPrevious(int current) {
+        if (current == 0) {
+            return totalSize - 1;
+        } else {
+            return current - 1;
+        }
+    }
+
+    /** @param current the current nextFirst or nextLast
+     * Returns the index next to the given one. Array is treated as circular. */
+    private int returnNext(int current) {
+        if (current == totalSize - 1) {
+            return 0;
+        } else {
+            return current + 1;
+        }
+    }
+
     /** Adds an item of type T to the front of the deque. */
     public void addFirst(T item) {
-
         items[nextFirst] = item;
-        size += 1;
-        if (nextFirst == 0) {
-            nextFirst = totalSize;
-        } else {
-            nextFirst -= 1;
+        if (size == 0) {
+            start = nextFirst;
         }
-
+        size += 1;
+        nextFirst = returnPrevious(nextFirst);
     }
 
     /** Adds an item of type T to the back of the deque. */
     public void addLast(T item) {
         items[nextLast] = item;
-        size += 1;
-        if (nextLast == 8) {
-            nextLast = 0;
-        } else {
-            nextLast += 1;
+        if (size == 0) {
+            start = nextLast;
         }
-
+        size += 1;
+        nextLast = returnNext(nextLast);
     }
 
     /** Returns true if deque is empty, false otherwise. */
@@ -63,15 +78,23 @@ public class ArrayDeque<T> {
 
     /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
     public T removeFirst() {
+        if (isEmpty()) {
+            return null;
+        }
         T currentFirst = items[nextFirst + 1];
-        nextFirst -= 1;
+        nextFirst = returnNext(nextFirst);
+        size -= 1;
         return currentFirst;
     }
 
     /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
     public T removeLast() {
-        T currentLast = items[nextLast + 1];
-        nextLast += 1;
+        if (isEmpty()) {
+            return null;
+        }
+        T currentLast = items[nextLast - 1];
+        nextLast = returnPrevious(nextLast);
+        size -= 1;
         return currentLast;
     }
 
