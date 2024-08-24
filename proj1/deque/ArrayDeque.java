@@ -81,8 +81,9 @@ public class ArrayDeque<T> {
         if (isEmpty()) {
             return null;
         }
-        T currentFirst = items[nextFirst + 1];
-        nextFirst = returnNext(nextFirst);
+        int next = returnNext(nextFirst);
+        T currentFirst = items[next];
+        nextFirst = next;
         size -= 1;
         return currentFirst;
     }
@@ -92,8 +93,9 @@ public class ArrayDeque<T> {
         if (isEmpty()) {
             return null;
         }
-        T currentLast = items[nextLast - 1];
-        nextLast = returnPrevious(nextLast);
+        int prev = returnPrevious(nextLast);
+        T currentLast = items[prev];
+        nextLast = prev;
         size -= 1;
         return currentLast;
     }
