@@ -17,6 +17,20 @@ public class ArrayDeque<T> {
         nextLast = totalSize / 2 + 1;
     }
 
+    /** Resizes the items array if usage factor is under 25%. */
+    private void resize(int newSize) {
+        T[] a = (T[]) new Object[newSize];
+        int newStart = newSize / 2;
+        for (int i = 0; i < size; i++) {
+            a[newStart + i] = get(i);
+        }
+        items = a;
+        start = newStart;
+        totalSize = newSize;
+        nextFirst = returnPrevious(newStart);
+        nextLast = returnNext(start + size - 1);
+    }
+
     /** @param current the current nextFirst or nextLast
      *  Returns the index previous to the given one. Array is treated as circular */
     private int returnPrevious(int current) {
@@ -39,6 +53,9 @@ public class ArrayDeque<T> {
 
     /** Adds an item of type T to the front of the deque. */
     public void addFirst(T item) {
+        if (size == totalSize) {
+            resize(size * 2);
+        }
         items[nextFirst] = item;
         if (size == 0) {
             start = nextFirst;
@@ -49,6 +66,9 @@ public class ArrayDeque<T> {
 
     /** Adds an item of type T to the back of the deque. */
     public void addLast(T item) {
+        if (size == totalSize) {
+            resize(size * 2);
+        }
         items[nextLast] = item;
         if (size == 0) {
             start = nextLast;
@@ -76,10 +96,14 @@ public class ArrayDeque<T> {
         System.out.println();
     }
 
-    /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the front of the deque. If no such item exists, returns null.
+     *  Resizes the items array if usage factor is under 25%.*/
     public T removeFirst() {
         if (isEmpty()) {
             return null;
+        }
+        if ((size < items.length / 4) && (items.length >= 16)) {
+            resize((int) (items.length / 4));
         }
         int next = returnNext(nextFirst);
         T currentFirst = items[next];
@@ -88,10 +112,14 @@ public class ArrayDeque<T> {
         return currentFirst;
     }
 
-    /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the back of the deque. If no such item exists, returns null.
+     *  Resizes the items array if usage factor is under 25%. */
     public T removeLast() {
         if (isEmpty()) {
             return null;
+        }
+        if ((size < items.length / 4) && (items.length >= 16)) {
+            resize((int) (items.length / 4));
         }
         int prev = returnPrevious(nextLast);
         T currentLast = items[prev];

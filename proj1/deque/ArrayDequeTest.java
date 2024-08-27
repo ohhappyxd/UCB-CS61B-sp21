@@ -45,7 +45,7 @@ public class ArrayDequeTest {
         assertEquals(2, L.size());
     }
 
-    /** Tests insertion of a large number of items.
+    /** Tests insertion of a large number of items.*/
     @Test
     public void testMegaInsert() {
         ArrayDeque<Integer> L = new ArrayDeque<>();
@@ -58,7 +58,7 @@ public class ArrayDequeTest {
             L.addLast(L.get(i));
         }
     }
-*/
+
     public static void main(String[] args) {
         jh61b.junit.TestRunner.runTests("all", ArrayDequeTest.class);
     }
