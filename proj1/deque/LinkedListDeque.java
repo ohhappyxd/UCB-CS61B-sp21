@@ -1,6 +1,7 @@
 package deque;
+import java.util.Iterator;
 
-public class LinkedListDeque<T> {
+public class LinkedListDeque<T> implements Iterable<T>{
     private class ItemNode {
         public T item;
         public ItemNode previous;
@@ -95,4 +96,44 @@ public class LinkedListDeque<T> {
         }
         return item.item;
     }
+
+
+    /** Gets the item at the given index recursively, where 0 is the front, 1 is the next item, and so forth.
+     * If no such item exists, returns null. Must not alter the deque! */
+    public T getRecursive(int index) {
+        if (index > size - 1) {
+            return null;
+        }
+        return getItem(sentinel.next, index);
+    }
+
+    private T getItem(ItemNode node, int index) {
+        if (index == 0) {
+            return node.item;
+        }
+        return getItem(node.next, index - 1);
+    }
+
+    /** Returns an iterator into Me */
+    public Iterator<T> iterator() {
+        return new LinkedListDequeIterator();
+    }
+
+    private class LinkedListDequeIterator implements Iterator<T> {
+        private int index;
+
+        public LinkedListDequeIterator() {
+            index = 0;
+        }
+        public boolean hasNext() {
+            return index < size;
+        }
+
+        public T next() {
+            T returnItem = get(index);
+            index += 1;
+            return returnItem;
+        }
+    }
+
 }
