@@ -1,5 +1,7 @@
 package deque;
 
+import java.util.Iterator;
+
 public class ArrayDeque<T> {
     private int size;
     private int totalSize;
@@ -135,6 +137,53 @@ public class ArrayDeque<T> {
             return items[start + index - totalSize];
         }
         return items[start + index];
+    }
+
+    /** Returns an iterator into Me */
+    public Iterator<T> iterator() {
+        return new ArrayDeque.ArrayDequeIterator();
+    }
+
+    private class ArrayDequeIterator implements Iterator<T> {
+        private int index;
+
+        public ArrayDequeIterator() {
+            index = 0;
+        }
+        public boolean hasNext() {
+            return index < size;
+        }
+
+        public T next() {
+            T returnItem = get(index);
+            index += 1;
+            return returnItem;
+        }
+    }
+
+    /** Returns whether or not the parameter o is equal to the Deque.
+     * o is considered equal if it is a Deque and if it contains the same contents
+     * (as goverened by the generic T’s equals method) in the same order. */
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (!(other instanceof ArrayDeque)) {
+            return false;
+        }
+        ArrayDeque<T> o = (ArrayDeque<T>) other;
+        if (o.size != size) {
+            return false;
+        }
+        for (int i = 0; i < size; i += 1) {
+            if (!o.get(i).equals(this.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
 

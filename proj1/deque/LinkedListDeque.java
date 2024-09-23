@@ -136,4 +136,29 @@ public class LinkedListDeque<T> implements Iterable<T>{
         }
     }
 
+    /** Returns whether or not the parameter o is equal to the Deque.
+     * o is considered equal if it is a Deque and if it contains the same contents
+     * (as goverened by the generic T’s equals method) in the same order. */
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+        if (other == null) {
+            return false;
+        }
+        if (!(other instanceof LinkedListDeque)) {
+            return false;
+        }
+        LinkedListDeque<T> o = (LinkedListDeque<T>) other;
+        if (o.size != size) {
+            return false;
+        }
+        for (int i = 0; i < size; i += 1) {
+            if (!o.get(i).equals(this.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
