@@ -2,7 +2,7 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> {
+public class ArrayDeque<T> implements Iterable<T>{
     private int size;
     private int totalSize;
     private T[] items;
@@ -59,9 +59,7 @@ public class ArrayDeque<T> {
             resize(size * 2);
         }
         items[nextFirst] = item;
-        if (size == 0) {
-            start = nextFirst;
-        }
+        start = nextFirst;
         size += 1;
         nextFirst = returnPrevious(nextFirst);
     }
@@ -164,6 +162,7 @@ public class ArrayDeque<T> {
     /** Returns whether or not the parameter o is equal to the Deque.
      * o is considered equal if it is a Deque and if it contains the same contents
      * (as goverened by the generic T’s equals method) in the same order. */
+    @Override
     public boolean equals(Object other) {
         if (this == other) {
             return true;
