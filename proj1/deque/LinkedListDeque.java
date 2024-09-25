@@ -1,7 +1,7 @@
 package deque;
 import java.util.Iterator;
 
-public class LinkedListDeque<T> implements Iterable<T>{
+public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
     private class ItemNode {
         public T item;
         public ItemNode previous;
@@ -39,11 +39,6 @@ public class LinkedListDeque<T> implements Iterable<T>{
         sentinel.previous = newItem;
         last.next = newItem;
         size += 1;
-    }
-
-    /** Returns true if deque is empty, false otherwise. */
-    public boolean isEmpty() {
-        return size == 0;
     }
 
     /** Returns the number of items in the deque. */
