@@ -109,7 +109,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         int next = returnNext(nextFirst);
         T currentFirst = items[next];
         nextFirst = next;
-        start = next;
+        start = returnNext(next);
         size -= 1;
         return currentFirst;
     }
