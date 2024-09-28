@@ -2,13 +2,14 @@ package deque;
 
 import java.util.Iterator;
 
-public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
+public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private int size;
     private int totalSize;
     private T[] items;
     private int start;
     private int nextFirst;
     private int nextLast;
+    private static final int RESIZE_LIMIT = 16;
 
     public ArrayDeque() {
         totalSize = 8;
@@ -91,13 +92,14 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         System.out.println();
     }
 
-    /** Removes and returns the item at the front of the deque. If no such item exists, returns null.
+    /** Removes and returns the item at the front of the deque.
+     * If no such item exists, returns null.
      *  Resizes the items array if usage factor is under 25%.*/
     public T removeFirst() {
         if (isEmpty()) {
             return null;
         }
-        if ((size < items.length / 4) && (items.length >= 16)) {
+        if ((size < items.length / 4) && (items.length >= RESIZE_LIMIT)) {
             resize((int) (items.length / 4));
         }
         int next = returnNext(nextFirst);
@@ -114,7 +116,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         if (isEmpty()) {
             return null;
         }
-        if ((size < items.length / 4) && (items.length >= 16)) {
+        if ((size < items.length / 4) && (items.length >= RESIZE_LIMIT)) {
             resize((int) (items.length / 4));
         }
         int prev = returnPrevious(nextLast);
@@ -141,7 +143,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
     private class ArrayDequeIterator implements Iterator<T> {
         private int index;
 
-        public ArrayDequeIterator() {
+        ArrayDequeIterator() {
             index = 0;
         }
         public boolean hasNext() {
@@ -166,11 +168,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         if (other == null) {
             return false;
         }
-        if (!(other instanceof ArrayDeque)) {
+        if (!(other instanceof Deque)) {
             return false;
         }
-        ArrayDeque<T> o = (ArrayDeque<T>) other;
-        if (o.size != size) {
+        Deque<T> o = (Deque<T>) other;
+        if (o.size() != size) {
             return false;
         }
         for (int i = 0; i < size; i += 1) {
@@ -180,6 +182,4 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T>{
         }
         return true;
     }
-
-
 }
