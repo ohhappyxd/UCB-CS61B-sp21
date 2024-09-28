@@ -25,7 +25,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         T[] a = (T[]) new Object[newSize];
         int newStart = newSize / 2;
         for (int i = 0; i < size; i++) {
-            a[newStart + i] = get(i);
+            if (newStart + i >= newSize) {
+                a[newStart + i - newSize] = get(i);
+            } else {
+                a[newStart + i] = get(i);
+            }
         }
         items = a;
         start = newStart;
