@@ -35,7 +35,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         start = newStart;
         totalSize = newSize;
         nextFirst = returnPrevious(newStart);
-        nextLast = returnNext(start + size - 1);
+        nextLast = returnNext((newStart + size - 1));
     }
 
     /** @param current the current nextFirst or nextLast
@@ -103,7 +103,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        if ((size < items.length / 4) && (items.length >= RESIZE_LIMIT)) {
+        if ((size <= items.length / 4) && (items.length >= RESIZE_LIMIT)) {
             resize((int) (items.length / 4));
         }
         int next = returnNext(nextFirst);
@@ -120,7 +120,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (isEmpty()) {
             return null;
         }
-        if ((size < items.length / 4) && (items.length >= RESIZE_LIMIT)) {
+        if ((size <= items.length / 4) && (items.length >= RESIZE_LIMIT)) {
             resize((int) (items.length / 4));
         }
         int prev = returnPrevious(nextLast);
