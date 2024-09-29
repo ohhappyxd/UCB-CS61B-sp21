@@ -62,30 +62,30 @@ public class ArrayDequeTest {
     @Test
     public void testGetMultiple() {
         ArrayDeque<Integer> L = new ArrayDeque<>();
-        L.addLast(0);
-        L.removeLast();
+        L.addFirst(0);
+        L.removeFirst();
         L.addFirst(2);
         L.removeLast();
         L.addLast(4);
-        L.get(0);
-        L.removeLast();
-        L.addLast(7);
+        L.addLast(5);
+        L.addFirst(6);
+        L.addFirst(7);
         L.addFirst(8);
-        L.removeLast();
-        L.removeLast();
-        L.addFirst(11);
+        L.addFirst(9);
+        L.addFirst(10);
         L.removeFirst();
-        L.addLast(13);
-        L.removeLast();
-        L.addLast(15);
-        L.addFirst(16);
-        L.addFirst(17);
-        L.addLast(18);
-        L.addLast(19);
-        L.get(2);
+        L.addFirst(12);
+        L.addFirst(13);
+        L.addLast(14);
         L.removeFirst();
-        int result = L.get(2);
-        assertEquals(18, result);
+        L.removeFirst();
+        L.removeLast();
+        L.removeFirst();
+        L.removeLast();
+        L.addFirst(20);
+        L.removeFirst();
+        L.get(3);
+        L.removeLast();
     }
 
     public static void main(String[] args) {

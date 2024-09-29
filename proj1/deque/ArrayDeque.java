@@ -35,7 +35,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         start = newStart;
         totalSize = newSize;
         nextFirst = returnPrevious(newStart);
-        nextLast = returnNext((newStart + size - 1));
+        int last;
+        if (start + size - 1 < totalSize) {
+            last = start + size - 1;
+        } else {
+            last = start + size - totalSize - 1;
+        }
+        nextLast = returnNext(last);
     }
 
     /** @param current the current nextFirst or nextLast
