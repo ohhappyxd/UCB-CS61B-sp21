@@ -11,7 +11,7 @@ public class TestArrayDequeEC {
     public void testSAD() {
         StudentArrayDeque<Integer> sad1 = new StudentArrayDeque<>();
         ArrayDequeSolution<Integer> solution1 = new ArrayDequeSolution<>();
-        String message= "";
+        String message = "";
 
         for (int i = 0; i < 10000; i += 1) {
             double randomNumber = StdRandom.uniform(0.0, 4.0);
