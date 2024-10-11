@@ -1,6 +1,8 @@
 package capers;
 
 import java.io.File;
+import java.io.IOException;
+
 import static capers.Utils.*;
 
 /** A repository for Capers 
@@ -33,11 +35,13 @@ public class CapersRepository {
      */
     public static void setupPersistence() {
         // TODO
-        CAPERS_FOLDER.mkdir();
+        if (!CAPERS_FOLDER.exists()) {
+            CAPERS_FOLDER.mkdir();
+        }
         File DOG_FOLDER = Utils.join(CAPERS_FOLDER, "dogs");
-        DOG_FOLDER.mkdir();
-        File STORY = Utils.join(CAPERS_FOLDER, "story.txt");
-        STORY.createNewFile();
+        if (!DOG_FOLDER.exists()) {
+            DOG_FOLDER.mkdir();
+        }
     }
 
     /**
@@ -45,8 +49,16 @@ public class CapersRepository {
      * to a file called `story` in the .capers directory.
      * @param text String of the text to be appended to the story
      */
-    public static void writeStory(String text) {
+    public static void writeStory(String text) throws IOException {
         // TODO
+        File STORY = Utils.join(CAPERS_FOLDER, "story.txt");
+        if (!STORY.exists()) {
+            STORY.createNewFile();
+        }
+        String story = readContentsAsString(STORY);
+        story = story + text + "\n";
+        Utils.writeContents(STORY, story);
+        System.out.println(story);
     }
 
     /**
@@ -54,8 +66,11 @@ public class CapersRepository {
      * three non-command arguments of args (name, breed, age).
      * Also prints out the dog's information using toString().
      */
-    public static void makeDog(String name, String breed, int age) {
+    public static void makeDog(String name, String breed, int age) throws IOException {
         // TODO
+        Dog dog = new Dog(name, breed, age);
+        dog.saveDog();
+        System.out.println(dog.toString());
     }
 
     /**
@@ -64,7 +79,10 @@ public class CapersRepository {
      * Chooses dog to advance based on the first non-command argument of args.
      * @param name String name of the Dog whose birthday we're celebrating.
      */
-    public static void celebrateBirthday(String name) {
+    public static void celebrateBirthday(String name) throws IOException {
         // TODO
+        Dog dog = Dog.fromFile(name);
+        dog.haveBirthday();
+        dog.saveDog();
     }
 }
