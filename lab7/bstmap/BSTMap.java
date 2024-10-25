@@ -10,6 +10,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         private K key;
         private V val;
         private K left, right;
+        private int size;
 
         BSTNode(K k, V v) {
             key = k;
@@ -17,16 +18,23 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         }
     }
 
+    /** Initializes an empty BSTMap. */
+    public BSTMap() {
+    }
+
     /** Removes all of the mappings from this map. */
     @Override
     public void clear(){
-        throw new UnsupportedOperationException();
+        root = null;
     }
 
     /* Returns true if this map contains a mapping for the specified key. */
     @Override
     public boolean containsKey(K key){
-        throw new UnsupportedOperationException();
+        if (key == null) {
+            throw new IllegalArgumentException("argument cannot be null");
+        }
+        return get(key) != null;
     }
 
     /* Returns the value to which the specified key is mapped, or null if this
@@ -40,7 +48,15 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
     /* Returns the number of key-value mappings in this map. */
     @Override
     public int size(){
-        throw new UnsupportedOperationException();
+        return size(root);
+    }
+
+    private int size(BSTNode x) {
+        if (x == null) {
+            return 0;
+        } else {
+            return x.size;
+        }
     }
 
     /* Associates the specified value with the specified key in this map. */
