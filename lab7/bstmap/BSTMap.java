@@ -1,6 +1,7 @@
 package bstmap;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
@@ -9,12 +10,13 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
     private class BSTNode {
         private K key;
         private V val;
-        private K left, right;
+        private BSTNode left, right;
         private int size;
 
-        BSTNode(K k, V v) {
-            key = k;
-            val = v;
+        public BSTNode(K k, V v, int size) {
+            this.key = k;
+            this.val = v;
+            this.size = size;
         }
     }
 
@@ -32,9 +34,23 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
     @Override
     public boolean containsKey(K key){
         if (key == null) {
-            throw new IllegalArgumentException("argument cannot be null");
+            throw new IllegalArgumentException("Argument cannot be null.");
         }
-        return get(key) != null;
+        return containsKey(root, key);
+    }
+
+    private boolean containsKey(BSTNode x, K key) {
+        if (x == null) {
+            return false;
+        }
+        int cmp = key.compareTo(x.key);
+        if (cmp < 0) {
+            return containsKey(x.left, key);
+        } else if (cmp > 0) {
+            return containsKey(x.right, key);
+        } else {
+            return true;
+        }
     }
 
     /* Returns the value to which the specified key is mapped, or null if this
@@ -42,7 +58,24 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
      */
     @Override
     public V get(K key){
-        throw new UnsupportedOperationException();
+        if (key == null) {
+            throw new IllegalArgumentException("Cannot call put with a null key.");
+        }
+        return get(root, key);
+    }
+
+    private V get(BSTNode x, K key) {
+        if (x == null) {
+            return null;
+        }
+        int cmp = key.compareTo(x.key);
+        if (cmp < 0) {
+            return get(x.left, key);
+        } else if (cmp > 0) {
+            return get(x.right, key);
+        } else {
+            return x.val;
+        }
     }
 
     /* Returns the number of key-value mappings in this map. */
@@ -62,7 +95,26 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
     /* Associates the specified value with the specified key in this map. */
     @Override
     public void put(K key, V value){
-        throw new UnsupportedOperationException();
+        if (key == null) {
+            throw new IllegalArgumentException("Cannot call put with a null key.");
+        }
+        root = put(root, key, value);
+    }
+
+    private BSTNode put(BSTNode x, K key, V value) {
+        if (x == null) {
+            return new BSTNode(key, value, 1);
+        }
+        int cmp = key.compareTo(x.key);
+        if (cmp < 0) {
+            x.left = put(x.left, key, value);
+        } else if (cmp > 0) {
+            x.right = put(x.right, key, value);
+        } else {
+            x.val = value;
+        }
+        x.size = 1 + size(x.left) + size(x.right);
+        return x;
     }
 
     /* Returns a Set view of the keys contained in this map. Not required for Lab 7.
