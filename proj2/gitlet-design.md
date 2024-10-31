@@ -1,10 +1,10 @@
 # Gitlet Design Document
 
-**Name**:
+**Name**: Xinxin
 
 ## Classes and Data Structures
 
-### Class 1
+### Main
 
 #### Fields
 
@@ -12,7 +12,7 @@
 2. Field 2
 
 
-### Class 2
+### Commit
 
 #### Fields
 
