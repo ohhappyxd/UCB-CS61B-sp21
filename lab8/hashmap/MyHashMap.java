@@ -1,5 +1,6 @@
 package hashmap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -30,6 +31,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     /* Instance Variables */
     private Collection<Node>[] buckets;
     private int size;
+    private int length;
     private double maxLoad;
     // You should probably define some more!
 
@@ -80,7 +82,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      * OWN BUCKET DATA STRUCTURES WITH THE NEW OPERATOR!
      */
     protected Collection<Node> createBucket() {
-        return null;
+        return new ArrayList<>();
     }
 
     /**
@@ -107,7 +109,14 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     /** Returns true if this map contains a mapping for the specified key. */
     @Override
     public boolean containsKey(K key) {
-        throw new UnsupportedOperationException();
+        int x = key.hashCode();
+        int index = Math.floorMod(x, length);
+        for (Node pair : buckets[index]) {
+            if (pair.key.equals(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
