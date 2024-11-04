@@ -10,8 +10,8 @@ import java.util.*;
  *  @author Xinxin
  */
 public class MyHashMap<K, V> implements Map61B<K, V> {
-    private final int DEFAULT_LENGTH = 16;
-    private final double DEFAULT_LOAD_FACTOR = 0.75;
+    private static final int DEFAULT_LENGTH = 16;
+    private static final double DEFAULT_LOAD_FACTOR = 0.75;
 
     /**
      * Protected helper class to store key/value pairs
