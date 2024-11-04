@@ -1,9 +1,6 @@
 package hashmap;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  *  A hash table-backed Map implementation. Provides amortized constant time
@@ -13,6 +10,8 @@ import java.util.Set;
  *  @author Xinxin
  */
 public class MyHashMap<K, V> implements Map61B<K, V> {
+    private final int DEFAULT_LENGTH = 16;
+    private final double DEFAULT_LOAD_FACTOR = 0.75;
 
     /**
      * Protected helper class to store key/value pairs
@@ -33,15 +32,21 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     private int size;
     private int length;
     private double maxLoad;
-    // You should probably define some more!
+    private Set<K> keys;
 
     /** Constructors */
     public MyHashMap() {
-        new MyHashMap<K, V>(16, 0.75);
+        buckets = createTable(DEFAULT_LENGTH);
+        maxLoad = DEFAULT_LOAD_FACTOR;
+        keys = new HashSet<>();
+        length = DEFAULT_LENGTH;
     }
 
     public MyHashMap(int initialSize) {
-        new MyHashMap<K, V>(initialSize, 0.75);
+        buckets = createTable(initialSize);
+        maxLoad = DEFAULT_LOAD_FACTOR;
+        keys = new HashSet<>();
+        length = initialSize;
     }
 
     /**
@@ -54,6 +59,8 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     public MyHashMap(int initialSize, double maxLoad) {
         buckets = createTable(initialSize);
         maxLoad = maxLoad;
+        keys = new HashSet<>();
+        length = initialSize;
     }
 
     /**
@@ -98,25 +105,22 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
         return new Collection[tableSize];
     }
 
-    // TODO: Implement the methods of the Map61B Interface below
-    // Your code won't compile until you do so!
     /** Removes all of the mappings from this map. */
     @Override
     public void clear() {
         size = 0;
+        keys.clear();
     }
 
     /** Returns true if this map contains a mapping for the specified key. */
     @Override
     public boolean containsKey(K key) {
-        int x = key.hashCode();
-        int index = Math.floorMod(x, length);
-        for (Node pair : buckets[index]) {
-            if (pair.key.equals(key)) {
-                return true;
-            }
+        if (keys != null) {
+            return keys.contains(key);
+        } else {
+            return false;
         }
-        return false;
+
     }
 
     /**
@@ -125,7 +129,16 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     @Override
     public V get(K key) {
-        throw new UnsupportedOperationException();
+        if (containsKey(key)) {
+            int x = key.hashCode();
+            int index = Math.floorMod(x, length);
+            for (Node pair : buckets[index]) {
+                if (pair.key.equals(key)) {
+                    return pair.value;
+                }
+            }
+        }
+        return null;
     }
 
     /** Returns the number of key-value mappings in this map. */
@@ -141,13 +154,34 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     @Override
     public void put(K key, V value) {
-        throw new UnsupportedOperationException();
+        int x = key.hashCode();
+        int index = Math.floorMod(x, length);
+        if (containsKey(key)) {
+            for (Node pair : buckets[index]) {
+                if (pair.key.equals(key)) {
+                    pair.value = value;
+                }
+            }
+        } else {
+            if (buckets[index] == null) {
+                buckets[index] = createBucket();
+            }
+            buckets[index].add(new Node(key, value));
+            keys.add(key);
+            size += 1;
+        }
+        /* Resize if the load factor is exceeded. */
+        if ((double) size / length > maxLoad) {
+            Collection<Node>[] t = createTable(length * 2);
+            System.arraycopy(buckets, 0, t, 0, length);
+            buckets = t;
+        }
     }
 
     /** Returns a Set view of the keys contained in this map. */
     @Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException();
+        return keys;
     }
 
     /**
@@ -157,7 +191,19 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     @Override
     public V remove(K key) {
-        throw new UnsupportedOperationException();
+        if (containsKey(key)) {
+            int x = key.hashCode();
+            int index = Math.floorMod(x, length);
+            for (Node pair : buckets[index]) {
+                if (pair.key == key) {
+                    V value = pair.value;
+                    keys.remove(key);
+                    buckets[index].remove(pair);
+                    return value;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -167,11 +213,15 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
      */
     @Override
     public V remove(K key, V value) {
-        throw new UnsupportedOperationException();
+        if (get(key) == value) {
+            return remove(key);
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Iterator<K> iterator() {
-        throw new UnsupportedOperationException();
+        return keys.iterator();
     }
 }
