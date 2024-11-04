@@ -36,17 +36,11 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
 
     /** Constructors */
     public MyHashMap() {
-        buckets = createTable(DEFAULT_LENGTH);
-        maxLoad = DEFAULT_LOAD_FACTOR;
-        keys = new HashSet<>();
-        length = DEFAULT_LENGTH;
+        this(DEFAULT_LENGTH, DEFAULT_LOAD_FACTOR);
     }
 
     public MyHashMap(int initialSize) {
-        buckets = createTable(initialSize);
-        maxLoad = DEFAULT_LOAD_FACTOR;
-        keys = new HashSet<>();
-        length = initialSize;
+        this(initialSize, DEFAULT_LOAD_FACTOR);
     }
 
     /**
