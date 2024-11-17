@@ -20,7 +20,17 @@ public class Commit {
      */
 
     /** The message of this Commit. */
-    private String message;
+    public String message;
+    public Date timestamp;
+
+    public Commit(String message, Date timestamp) {
+        this.message = message;
+    }
+
+    /** Initial commit. */
+    public static void init() {
+        Commit initialCommit = new Commit("initial commit", new Date(0));
+    }
 
     /* TODO: fill in the rest of this class. */
 }

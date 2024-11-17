@@ -23,7 +23,7 @@ arguments and defers the execution to the <code>Repository</code> class.
 1. id
 2. parent1
 3. parent2
-4. time
+4. timestamp
 5. message
 6. mappingToBlob
 
