@@ -20,12 +20,12 @@ arguments and defers the execution to the <code>Repository</code> class.
 
 #### Fields
 
-1. id
-2. parent1
-3. parent2
-4. timestamp
-5. message
-6. mappingToBlob
+1. <code>public String id</code> A unique id of the Commit.
+2. <code>public Commit parent1</code> First parent of the Commit.
+3. <code>public Commit parent2</code> Second parent of the Commit.
+4. <code>timestamp</code> The time the Commit was created.
+5. <code>message</code> The message of this Commit.
+6. <code>mappingToBlob</code> A mapping of SHA-1 hash of blobs to the files in the blobs directory.
 
 
 ## Algorithms

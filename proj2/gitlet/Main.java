@@ -19,6 +19,7 @@ public class Main {
             case "init":
                 // TODO: handle the `init` command
                 validateNumArgs(args, 1);
+                Repository.createRepo();
                 Commit.init();
                 break;
             case "add":
