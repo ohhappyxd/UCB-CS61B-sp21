@@ -1,6 +1,8 @@
 package gitlet;
 
 import java.io.File;
+import java.util.Date;
+
 import static gitlet.Utils.*;
 
 // TODO: any imports you need here
@@ -26,12 +28,22 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
 
     /* TODO: fill in the rest of this class. */
-    public static void createRepo() {
+    /** Initial commit. Creates a new Gitlet version-control system in the current directory. The system
+     * automatically start with one commit: a commit that contains no files and has the commit message
+     * "initial commit". It will have a single branch: master, which initially points to this initial commit,
+     * and master will be the current branch.*/
+    public static void init() {
         /** If there is already a Gitlet version-control system in the current directory, abort */
         if (GITLET_DIR.exists()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
-            System.exit(0);
+            return;
         }
         GITLET_DIR.mkdir();
+        /** Create folder for commits. */
+        File COMMITS_FOLDER = Utils.join(GITLET_DIR, "commits");
+        COMMITS_FOLDER.mkdir();
+
+        Commit initialCommit = new Commit("initial commit", new Date(0));
+        initialCommit.saveCommit();
     }
 }
