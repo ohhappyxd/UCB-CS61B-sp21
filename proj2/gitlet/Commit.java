@@ -3,6 +3,7 @@ package gitlet;
 // TODO: any imports you need here
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
@@ -34,16 +35,18 @@ public class Commit implements Serializable {
     /** Second parent of the Commit. */
     public String parent2;
     /** A mapping of SHA-1 hash of blobs to the files in the blobs directory. */
-    public HashMap mappingToBlob;
+    public HashMap<String, String> mappingToBlobs;
 
     public Commit(String message, Date timestamp) {
         this.message = message;
         this.timestamp = timestamp;
+        this.id = Utils.sha1(this);
+        this.mappingToBlobs = new HashMap<>();
     }
 
     /* TODO: fill in the rest of this class. */
     //Saves the commit object.
-    public void saveCommit() {
+    public void saveCommit() throws IOException {
         File outFile = Utils.join(COMMITS_FOLDER, this.id);
         if (!outFile.exists()) {
             outFile.createNewFile();
