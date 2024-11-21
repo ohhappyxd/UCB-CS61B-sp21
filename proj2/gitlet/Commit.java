@@ -15,6 +15,7 @@ import java.util.HashMap;
  *  @author Xinxin
  */
 public class Commit implements Serializable {
+    public static final File CWD = new File(System.getProperty("user.dir"));
     static final File COMMITS_FOLDER = Utils.join(".gitlet", "commits");
     /**
      * TODO: add instance variables here.
@@ -43,6 +44,8 @@ public class Commit implements Serializable {
         this.id = Utils.sha1(this);
         this.mappingToBlobs = new HashMap<>();
     }
+
+
 
     /* TODO: fill in the rest of this class. */
     //Saves the commit object.

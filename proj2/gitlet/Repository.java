@@ -28,6 +28,8 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
+    public static final File STAGE_ADD_FOLDER = Utils.join(GITLET_DIR, "add");
+    public Commit currentCommit;
 
     /* TODO: fill in the rest of this class. */
     public static void setupPersistence() {
@@ -36,7 +38,6 @@ public class Repository {
         File COMMITS_FOLDER = Utils.join(GITLET_DIR, "commits");
         COMMITS_FOLDER.mkdir();
         /** Create folders for staging area. */
-        File STAGE_ADD_FOLDER = Utils.join(GITLET_DIR, "add");
         STAGE_ADD_FOLDER.mkdir();
         /** Create folder for blobs. */
         File BLOBS_FOLDER = Utils.join(GITLET_DIR, "blobs");
@@ -59,25 +60,32 @@ public class Repository {
         Commit initialCommit = new Commit("initial commit", new Date(0));
         initialCommit.saveCommit();
     }
+
     /** Adds a copy of the file as it currently exists to the staging area.
      * If the current working version of the file is identical to the version in the current commit,
      * do not stage it to be added, and remove it from the staging area if it is already there.
      * The file will no longer be staged for removal, if it was at the time of the command.*/
     public static void add(String fileName) {
         File FileToAdd = Utils.join(CWD, fileName);
-        String FileToAddContent = Utils.readContentsAsString(FileToAdd);
-        String sha1ToAdd = Utils.sha1(FileToAddContent);
-        File BLOBS_FOLDER = Utils.join(GITLET_DIR, "blobs");
-        File AddFile = Utils.join(BLOBS_FOLDER, sha1ToAdd);
-        Utils.writeContents(AddFile, FileToAddContent);
+        if (! FileToAdd.exists()) {
+            System.out.println("File does not exist.");
+            System.exit(0);
+        }
+        String ContentToAdd = Utils.readContentsAsString(FileToAdd);
+        String sha1ToAdd = Utils.sha1(ContentToAdd);
+        File AddFile = Utils.join(STAGE_ADD_FOLDER, sha1ToAdd);
+        Utils.writeContents(AddFile, ContentToAdd);
         HashMap<String, String> map = new HashMap<>();
         map.put(fileName, sha1ToAdd);
 
-        if (Commit.mappingToBlols.containsKey(fileName)) {
+        Commit currentCommit;
+        if (currentCommit.mappingToBlobs.containsKey(fileName)) {
+            // TODO: if staged for removal, remove from removal
             return;
         }
 
         // TODO: remove from stage for removal if necessary.
 
     }
+
 }
