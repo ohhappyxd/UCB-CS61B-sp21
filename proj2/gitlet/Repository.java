@@ -13,7 +13,7 @@ import static gitlet.Utils.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
- *  @author TODO
+ *  @author Xinxin
  */
 public class Repository {
     /**
@@ -28,20 +28,23 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File STAGE_ADD_FOLDER = Utils.join(GITLET_DIR, "add");
-    public Commit currentCommit;
+    /** The Staging area */
+    public static final File STAGE = Utils.join(GITLET_DIR, "stage");
+    /** The commits directory. */
+    public static final File COMMITS = Utils.join(GITLET_DIR, "commits");
+    /** The blobs directory. */
+    public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
+    public static Commit currentCommit;
 
     /* TODO: fill in the rest of this class. */
     public static void setupPersistence() {
         GITLET_DIR.mkdir();
         /** Create folder for commits. */
-        File COMMITS_FOLDER = Utils.join(GITLET_DIR, "commits");
-        COMMITS_FOLDER.mkdir();
+        COMMITS.mkdir();
         /** Create folders for staging area. */
-        STAGE_ADD_FOLDER.mkdir();
+        STAGE.mkdir();
         /** Create folder for blobs. */
-        File BLOBS_FOLDER = Utils.join(GITLET_DIR, "blobs");
-        BLOBS_FOLDER.mkdir();
+        BLOBS.mkdir();
     }
 
     /** Initial commit. Creates a new Gitlet version-control system in the current directory. The system
@@ -54,7 +57,7 @@ public class Repository {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
             return;
         }
-        setupPersistence();
+        Repository.setupPersistence();
         /* TODO: Something to represent master branch */
 
         Commit initialCommit = new Commit("initial commit", new Date(0));
@@ -67,25 +70,24 @@ public class Repository {
      * The file will no longer be staged for removal, if it was at the time of the command.*/
     public static void add(String fileName) {
         File FileToAdd = Utils.join(CWD, fileName);
-        if (! FileToAdd.exists()) {
+        if (!FileToAdd.exists()) {
             System.out.println("File does not exist.");
             System.exit(0);
         }
-        String ContentToAdd = Utils.readContentsAsString(FileToAdd);
+        byte[] ContentToAdd = Utils.readContents(FileToAdd);
         String sha1ToAdd = Utils.sha1(ContentToAdd);
-        File AddFile = Utils.join(STAGE_ADD_FOLDER, sha1ToAdd);
+        if (getCurrentCommit().blobs != null && getCurrentCommit().blobs.containsValue(sha1ToAdd)) {
+            // TODO: if staged for removal, remove from removal
+            return;
+            // TODO: remove from stage for removal if necessary.
+        }
+        File AddFile = Utils.join(STAGE, sha1ToAdd);
         Utils.writeContents(AddFile, ContentToAdd);
         HashMap<String, String> map = new HashMap<>();
         map.put(fileName, sha1ToAdd);
-
-        Commit currentCommit;
-        if (currentCommit.mappingToBlobs.containsKey(fileName)) {
-            // TODO: if staged for removal, remove from removal
-            return;
-        }
-
-        // TODO: remove from stage for removal if necessary.
-
     }
 
+    public static Commit getCurrentCommit() {
+        return currentCommit;
+    }
 }

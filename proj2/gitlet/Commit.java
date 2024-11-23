@@ -16,7 +16,7 @@ import java.util.HashMap;
  */
 public class Commit implements Serializable {
     public static final File CWD = new File(System.getProperty("user.dir"));
-    static final File COMMITS_FOLDER = Utils.join(".gitlet", "commits");
+    static final File COMMITS = Utils.join(".gitlet", "commits");
     /**
      * TODO: add instance variables here.
      *
@@ -36,13 +36,23 @@ public class Commit implements Serializable {
     /** Second parent of the Commit. */
     public String parent2;
     /** A mapping of SHA-1 hash of blobs to the files in the blobs directory. */
-    public HashMap<String, String> mappingToBlobs;
+    public HashMap<String, String> blobs;
 
+    /** For initial commit only. */
     public Commit(String message, Date timestamp) {
         this.message = message;
         this.timestamp = timestamp;
-        this.id = Utils.sha1(this);
-        this.mappingToBlobs = new HashMap<>();
+        this.id = Utils.sha1(SerializeUtils.toByteArray(this));
+        this.blobs = new HashMap<>();
+        Repository.currentCommit = this;
+    }
+
+    public Commit(String message) {
+        this.message = message;
+        this.timestamp = new Date();
+        this.id = Utils.sha1(SerializeUtils.toByteArray(this));
+        this.blobs = new HashMap<>();
+        Repository.currentCommit = this;
     }
 
 
@@ -50,7 +60,7 @@ public class Commit implements Serializable {
     /* TODO: fill in the rest of this class. */
     //Saves the commit object.
     public void saveCommit() throws IOException {
-        File outFile = Utils.join(COMMITS_FOLDER, this.id);
+        File outFile = Utils.join(COMMITS, this.id);
         if (!outFile.exists()) {
             outFile.createNewFile();
         }
