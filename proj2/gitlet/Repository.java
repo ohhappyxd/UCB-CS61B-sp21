@@ -34,6 +34,11 @@ public class Repository {
     public static final File COMMITS = Utils.join(GITLET_DIR, "commits");
     /** The blobs directory. */
     public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
+    /** The branches directory. */
+    public static final File BRANCHES = Utils.join(GITLET_DIR, "branches");
+    /** THe HEAD file. */
+    public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
+
     public static Commit currentCommit;
 
     /* TODO: fill in the rest of this class. */
@@ -58,10 +63,15 @@ public class Repository {
             return;
         }
         Repository.setupPersistence();
-        /* TODO: Something to represent master branch */
 
         Commit initialCommit = new Commit("initial commit", new Date(0));
         initialCommit.saveCommit();
+
+        /* Set up master branch. */
+        File master = Utils.join(BRANCHES, "master");
+        Utils.writeContents(master, initialCommit.id);
+        /** Set current branch to master. */
+        Utils.writeContents(HEAD, "master");
     }
 
     /** Adds a copy of the file as it currently exists to the staging area.
@@ -74,17 +84,9 @@ public class Repository {
             System.out.println("File does not exist.");
             System.exit(0);
         }
-        byte[] ContentToAdd = Utils.readContents(FileToAdd);
-        String sha1ToAdd = Utils.sha1(ContentToAdd);
-        if (getCurrentCommit().blobs != null && getCurrentCommit().blobs.containsValue(sha1ToAdd)) {
-            // TODO: if staged for removal, remove from removal
-            return;
-            // TODO: remove from stage for removal if necessary.
-        }
-        File AddFile = Utils.join(STAGE, sha1ToAdd);
-        Utils.writeContents(AddFile, ContentToAdd);
-        HashMap<String, String> map = new HashMap<>();
-        map.put(fileName, sha1ToAdd);
+        Stage.add(fileName);
+
+
     }
 
     public static Commit getCurrentCommit() {
