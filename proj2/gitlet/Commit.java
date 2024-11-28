@@ -43,6 +43,7 @@ public class Commit implements Serializable {
         this.message = message;
         this.timestamp = timestamp;
         this.id = Utils.sha1(SerializeUtils.toByteArray(this));
+        /** The field blobs maps file names to their SHA-1 hash. */
         this.blobs = new HashMap<>();
         Repository.currentCommit = this;
     }
