@@ -36,8 +36,10 @@ public class Repository {
     public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
     /** The branches directory. */
     public static final File BRANCHES = Utils.join(GITLET_DIR, "branches");
-    /** THe HEAD file. */
+    /** The HEAD file. */
     public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
+    /** File documenting current commit. */
+    public static final File CURRENT_COMMIT = Utils.join(GITLET_DIR, "CURRENT_COMMIT");
 
     public static Commit currentCommit;
 
@@ -85,11 +87,14 @@ public class Repository {
             System.exit(0);
         }
         Stage.add(fileName);
-
-
     }
 
     public static Commit getCurrentCommit() {
         return currentCommit;
+    }
+
+    public static void commit(String message) {
+        Commit newCommit= new Commit(message);
+
     }
 }

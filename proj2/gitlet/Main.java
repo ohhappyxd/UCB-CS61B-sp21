@@ -29,6 +29,10 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             // TODO: FILL THE REST IN
+            case "commit":
+                validateNumArgs(args, 1);
+                Repository.commit(args[0]);
+                break;
         }
     }
 

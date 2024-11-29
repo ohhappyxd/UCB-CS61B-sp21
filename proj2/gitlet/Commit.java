@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
 
+import static gitlet.Utils.join;
+
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
@@ -16,7 +18,12 @@ import java.util.HashMap;
  */
 public class Commit implements Serializable {
     public static final File CWD = new File(System.getProperty("user.dir"));
-    static final File COMMITS = Utils.join(".gitlet", "commits");
+    /** The .gitlet directory. */
+    public static final File GITLET_DIR = join(CWD, ".gitlet");
+    /** The commits directory. */
+    static final File COMMITS = Utils.join(GITLET_DIR, "commits");
+    /** File documenting current commit. */
+    public static final File CURRENT_COMMIT = Utils.join(GITLET_DIR, "CURRENT_COMMIT");
     /**
      * TODO: add instance variables here.
      *
@@ -45,15 +52,15 @@ public class Commit implements Serializable {
         this.id = Utils.sha1(SerializeUtils.toByteArray(this));
         /** The field blobs maps file names to their SHA-1 hash. */
         this.blobs = new HashMap<>();
-        Repository.currentCommit = this;
+        Utils.writeObject(CURRENT_COMMIT, this);
     }
 
     public Commit(String message) {
         this.message = message;
         this.timestamp = new Date();
+        this.blobs = Utils.readObject(CURRENT_COMMIT, Commit.class).blobs;
         this.id = Utils.sha1(SerializeUtils.toByteArray(this));
-        this.blobs = new HashMap<>();
-        Repository.currentCommit = this;
+        Utils.writeObject(CURRENT_COMMIT, this);
     }
 
 
