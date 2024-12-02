@@ -15,8 +15,8 @@ public class Stage {
     /** The blobs directory. */
     public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
 
-    private static HashMap<String, String> toAdd;
-    private static HashMap<String, String> toRemove;
+    static HashMap<String, String> toAdd;
+    static HashMap<String, String> toRemove;
 
     /** Adds a copy of the file as it currently exists to the staging area.
      * If the current working version of the file is identical to the version in the current commit,
@@ -36,12 +36,17 @@ public class Stage {
             return;
         }
 
-        /** Write content to blols. */
+        /** Write content to blobs. */
         File AddFile = Utils.join(BLOBS, sha1ToAdd);
         Utils.writeContents(AddFile, ContentToAdd);
-        /** Add mapping to stage. */
+        /** Add mapping to the stage. */
         Stage.toAdd.put(fileName, sha1ToAdd);
 
 
+    }
+
+    public static void clear() {
+        toAdd.clear();
+        toRemove.clear();
     }
 }

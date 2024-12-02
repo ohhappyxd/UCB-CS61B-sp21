@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import static gitlet.Utils.*;
 
@@ -93,8 +94,25 @@ public class Repository {
         return currentCommit;
     }
 
-    public static void commit(String message) {
+    public static void commit(String message) throws IOException {
         Commit newCommit= new Commit(message);
+        for (Map.Entry<String, String> entry : Stage.toAdd.entrySet()) {
+            String file = entry.getKey();
+            String sha1 = entry.getValue();
+            newCommit.blobs.put(file, sha1);
+        }
+        // Todo: files tracked in the current commit may be untracked in the new commit
+        //  as a result being staged for removal by the rm command
+        for (Map.Entry<String, String> entry : Stage.toRemove.entrySet()) {
+            String file = entry.getKey();
+        }
+        newCommit.saveCommit();
+        Stage.clear();
 
+        // Todo: handle fail cases: Failure cases: If no files have been staged, abort.
+        //  Print the message No changes added to the commit. Every commit must have a non-blank message.
+        //  If it doesn’t, print the error message Please enter a commit message.
+        //  It is not a failure for tracked files to be missing from the working directory or
+        //  changed in the working directory. Just ignore everything outside the .gitlet directory entirely.
     }
 }

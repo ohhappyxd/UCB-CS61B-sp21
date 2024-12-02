@@ -24,6 +24,8 @@ public class Commit implements Serializable {
     static final File COMMITS = Utils.join(GITLET_DIR, "commits");
     /** File documenting current commit. */
     public static final File CURRENT_COMMIT = Utils.join(GITLET_DIR, "CURRENT_COMMIT");
+    /** The branches directory. */
+    public static final File BRANCHES = Utils.join(GITLET_DIR, "branches");
     /**
      * TODO: add instance variables here.
      *
@@ -55,12 +57,19 @@ public class Commit implements Serializable {
         Utils.writeObject(CURRENT_COMMIT, this);
     }
 
+    /** Creates a new commit, copying the blobs map from parent commit,
+     * setting parent of itself by copying from CURRENT_COMMIT */
     public Commit(String message) {
         this.message = message;
         this.timestamp = new Date();
-        this.blobs = Utils.readObject(CURRENT_COMMIT, Commit.class).blobs;
+        Commit lastCommit = Utils.readObject(CURRENT_COMMIT, Commit.class);
+        this.blobs = lastCommit.blobs;
+        this.parent1 = lastCommit.id;
         this.id = Utils.sha1(SerializeUtils.toByteArray(this));
         Utils.writeObject(CURRENT_COMMIT, this);
+        // Update master pointer.
+        File master = Utils.join(BRANCHES, "master");
+        Utils.writeContents(master, this.id);
     }
 
 

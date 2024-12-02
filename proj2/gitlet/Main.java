@@ -31,7 +31,7 @@ public class Main {
             // TODO: FILL THE REST IN
             case "commit":
                 validateNumArgs(args, 1);
-                Repository.commit(args[0]);
+                Repository.commit(args[1]);
                 break;
         }
     }
