@@ -30,9 +30,18 @@ public class Main {
                 break;
             // TODO: FILL THE REST IN
             case "commit":
-                validateNumArgs(args, 1);
+                validateNumArgs(args, 2);
                 Repository.commit(args[1]);
                 break;
+            case "checkout":
+                // TODO: fill this in
+                validateNumArgs(args, 2);
+            case "rm":
+                validateNumArgs(args, 2);
+                Repository.rm(args[1]);
+            case "log":
+                validateNumArgs(args, 1);
+                Repository.log();
         }
     }
 

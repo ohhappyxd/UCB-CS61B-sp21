@@ -1,6 +1,7 @@
 package gitlet;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static gitlet.Utils.join;
@@ -16,7 +17,7 @@ public class Stage {
     public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
 
     static HashMap<String, String> toAdd;
-    static HashMap<String, String> toRemove;
+    static ArrayList<String> toRemove;
 
     /** Adds a copy of the file as it currently exists to the staging area.
      * If the current working version of the file is identical to the version in the current commit,

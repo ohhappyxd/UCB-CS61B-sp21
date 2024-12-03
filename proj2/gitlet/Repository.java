@@ -3,7 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.ListIterator;
 import java.util.Map;
 
 import static gitlet.Utils.*;
@@ -95,6 +95,12 @@ public class Repository {
     }
 
     public static void commit(String message) throws IOException {
+        if (Stage.toAdd.isEmpty() && Stage.toRemove.isEmpty()) {
+            System.out.println("No changes added to the commit.");
+        }
+        if (message.isEmpty()) {
+            System.out.println("Please enter a commit message.");
+        }
         Commit newCommit= new Commit(message);
         for (Map.Entry<String, String> entry : Stage.toAdd.entrySet()) {
             String file = entry.getKey();
@@ -103,16 +109,31 @@ public class Repository {
         }
         // Todo: files tracked in the current commit may be untracked in the new commit
         //  as a result being staged for removal by the rm command
-        for (Map.Entry<String, String> entry : Stage.toRemove.entrySet()) {
-            String file = entry.getKey();
+        for (String fileName : Stage.toRemove) {
+            newCommit.blobs.remove(fileName);
         }
         newCommit.saveCommit();
         Stage.clear();
+    }
 
-        // Todo: handle fail cases: Failure cases: If no files have been staged, abort.
-        //  Print the message No changes added to the commit. Every commit must have a non-blank message.
-        //  If it doesn’t, print the error message Please enter a commit message.
-        //  It is not a failure for tracked files to be missing from the working directory or
-        //  changed in the working directory. Just ignore everything outside the .gitlet directory entirely.
+    /** Unstage the file if it is currently staged for addition. If the file is
+     * tracked in the current commit, stage it for removal and remove the file from
+     * the working directory if the user has not already done so (do not remove
+     * it unless it is tracked in the current commit). */
+    public static void rm(String fileName) {
+        if (Stage.toAdd.containsKey(fileName)) {
+            Stage.toAdd.remove(fileName);
+        }
+        if (Repository.getCurrentCommit().blobs.containsKey(fileName)) {
+            Stage.toRemove.add(fileName);
+            Utils.restrictedDelete(Utils.join(CWD, fileName));
+        }
+        if (!Stage.toAdd.containsKey(fileName) && !Repository.getCurrentCommit().blobs.containsKey(fileName)) {
+            System.out.println("No reason to remove the file.");
+        }
+    }
+
+    public static void log() {
+
     }
 }
