@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Formatter;
 import java.util.ListIterator;
 import java.util.Map;
 
@@ -133,7 +134,38 @@ public class Repository {
         }
     }
 
+    /** Starting at the current head commit, display information about each commit backwards
+     * along the commit tree until the initial commit, following the first parent commit links,
+     * ignoring any second parents found in merge commits. For every node in this history,
+     * the information it should display is the commit id, the time the commit was made,
+     * and the commit message. Here is an example of the exact format it should follow:
+     * ===
+     * commit a0da1ea5a15ab613bf9961fd86f010cf74c7ee48
+     * Date: Thu Nov 9 20:00:05 2017 -0800
+     * A commit message.*/
     public static void log() {
-
+        String head = Utils.readContentsAsString(HEAD);
+        File branch = new File(BRANCHES, head);
+        String currentCommitId = Utils.readContentsAsString(branch);
+        Commit currentCommit = Utils.readObject(Utils.join(COMMITS, currentCommitId), Commit.class);
+        Formatter formatter = new Formatter();
+        String formattedDate = formatter.format("%ta %1$tb %1$td %1$tT %1$tY %1$tz", currentCommit.timestamp)
+                .toString();
+        String log = "===" + "\n" + "commit " + currentCommitId + "\n";
+        if (currentCommit.parent2 != null) {
+            log += "Merge: " + currentCommit.parent1.substring(0, 6) + currentCommit.parent2.substring(0, 6);
+        }
+        log += formattedDate + "\n" + currentCommit.message + "\n";
+        while (currentCommit.parent1 != null) {
+            currentCommitId = currentCommit.parent1;
+            currentCommit = Utils.readObject(Utils.join(COMMITS, currentCommitId), Commit.class);
+            formattedDate = formatter.format("%ta %1$tb %1$td %1$tT %1$tY %1$tz", currentCommit.timestamp)
+                    .toString();
+            log += "===" + "\n" + "commit " + currentCommitId + "\n";
+            if (currentCommit.parent2 != null) {
+                log += "Merge: " + currentCommit.parent1.substring(0, 6) + currentCommit.parent2.substring(0, 6);
+            }
+            log += formattedDate + "\n" + currentCommit.message + "\n";
+        }
     }
 }
