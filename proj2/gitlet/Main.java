@@ -42,6 +42,15 @@ public class Main {
             case "log":
                 validateNumArgs(args, 1);
                 Repository.log();
+            case "global-log":
+                validateNumArgs(args, 1);
+                Repository.globalLog();
+            case "find":
+                validateNumArgs(args, 2);
+                Repository.find(args[1]);
+            case "status":
+                validateNumArgs(args, 1);
+                Repository.status();
         }
     }
 
