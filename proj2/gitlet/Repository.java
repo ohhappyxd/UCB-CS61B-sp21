@@ -220,9 +220,25 @@ public class Repository {
                 }
             }
         }
+        if (result.isEmpty()) {
+            System.out.println("Found no commit with that message.");
+        }
         System.out.println(result);
     }
 
     public static void status() {
+    }
+
+    public static void checkout(String[] args) {
+        if (args.length == 1) {
+            checkoutBranch();
+        } else if (args.length == 2 && args[1] == "--") {
+            checkoutFile();
+        } else if (args.length == 3 && args[2 == "--"]) {
+            checkoutFileInCommit();
+        } else {
+            System.out.println("Incorrect operands.");
+            System.exit(0);
+        }
     }
 }
