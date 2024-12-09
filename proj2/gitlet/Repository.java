@@ -2,9 +2,9 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
-import java.util.ListIterator;
 import java.util.Map;
 
 import static gitlet.Utils.*;
@@ -15,9 +15,17 @@ import static gitlet.Utils.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
+ *  .gitlet
+ *     ├── refs/
+ *     │ ├── commits
+ *     │ └── heads/
+ *     ├── objects/
+ *     ├── HEAD
+ *     └── index
+ *
  *  @author Xinxin
  */
-public class Repository {
+public class Repository implements Serializable {
     /**
      * TODO: add instance variables here.
      *
@@ -35,42 +43,39 @@ public class Repository {
      */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     /**
-     * The Staging area
+     * The Staging area, represented with an index file.
      */
-    public static final File STAGE = Utils.join(GITLET_DIR, "stage");
+    public static final File STAGE_DIR = Utils.join(GITLET_DIR, "index");
     /**
-     * The commits directory.
+     * The Reference directory, contains branches directory and commits file.
      */
-    public static final File COMMITS = Utils.join(GITLET_DIR, "commits");
+    public static final File REFS_DIR = Utils.join(GITLET_DIR, "refs");
     /**
-     * The blobs directory.
+     * The commits file. Contains all commit IDs.
      */
-    public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
+    public static final File COMMITS = Utils.join(REFS_DIR, "commits");
     /**
      * The branches directory.
      */
-    public static final File BRANCHES = Utils.join(GITLET_DIR, "branches");
+    public static final File BRANCHES_DIR = Utils.join(REFS_DIR, "heads");
     /**
-     * The HEAD file.
+     * The objects directory. Contains blobs of files and commits.
+     */
+    public static final File OBJECTS_DIR = Utils.join(GITLET_DIR, "objects");
+
+    /**
+     * The HEAD pointer.
      */
     public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
-    /**
-     * File documenting current commit.
-     */
-    public static final File CURRENT_COMMIT = Utils.join(GITLET_DIR, "CURRENT_COMMIT");
+
+    public static void setupPersistence() {
+        /** Set up persistence. */
+        GITLET_DIR.mkdir();
+        REFS_DIR.mkdir();
+        OBJECTS_DIR.mkdir();
+    }
 
     public static Commit currentCommit;
-
-    /* TODO: fill in the rest of this class. */
-    public static void setupPersistence() {
-        GITLET_DIR.mkdir();
-        /** Create folder for commits. */
-        COMMITS.mkdir();
-        /** Create folders for staging area. */
-        STAGE.mkdir();
-        /** Create folder for blobs. */
-        BLOBS.mkdir();
-    }
 
     /**
      * Initial commit. Creates a new Gitlet version-control system in the current directory. The system
@@ -169,7 +174,7 @@ public class Repository {
      */
     public static void log() {
         String head = Utils.readContentsAsString(HEAD);
-        File branch = new File(BRANCHES, head);
+        File branch = new File(BRANCHES_DIR, head);
         String currentCommitId = Utils.readContentsAsString(branch);
         Commit currentCommit = Utils.readObject(Utils.join(COMMITS, currentCommitId), Commit.class);
 
