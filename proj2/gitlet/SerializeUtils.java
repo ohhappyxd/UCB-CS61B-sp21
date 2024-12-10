@@ -15,4 +15,12 @@ public class SerializeUtils {
             throw new RuntimeException("Internal error serializing commit.");
         }
     }
+
+    public static String getDirFromID(String id) {
+        return id.substring(0,1);
+    }
+
+    public static String getFileNameFromID(String id) {
+        return id.substring(2);
+    }
 }

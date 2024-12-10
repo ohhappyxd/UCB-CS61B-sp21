@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.Map;
@@ -18,14 +17,14 @@ import static gitlet.Utils.*;
  *  .gitlet
  *     ├── refs/
  *     │ ├── commits
- *     │ └── heads/
+ *     │ └── branches/
  *     ├── objects/
  *     ├── HEAD
- *     └── index
+ *     └── stage
  *
  *  @author Xinxin
  */
-public class Repository implements Serializable {
+public class Repository{
     /**
      * TODO: add instance variables here.
      *
@@ -34,48 +33,31 @@ public class Repository implements Serializable {
      * variable is used. We've provided two examples for you.
      */
 
-    /**
-     * The current working directory.
-     */
+    /** Directories and files for persistence. */
+    // The current working directory.
     public static final File CWD = new File(System.getProperty("user.dir"));
-    /**
-     * The .gitlet directory.
-     */
+    // The .gitlet directory.
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    /**
-     * The Staging area, represented with an index file.
-     */
-    public static final File STAGE_DIR = Utils.join(GITLET_DIR, "index");
-    /**
-     * The Reference directory, contains branches directory and commits file.
-     */
+    // The Staging area, represented with an index file.
+    public static final File STAGE = Utils.join(GITLET_DIR, "stage");
+    //The Reference directory, contains branches directory and commits file.
     public static final File REFS_DIR = Utils.join(GITLET_DIR, "refs");
-    /**
-     * The commits file. Contains all commit IDs.
-     */
+    // The commits file. Contains all commit IDs.
     public static final File COMMITS = Utils.join(REFS_DIR, "commits");
-    /**
-     * The branches directory.
-     */
-    public static final File BRANCHES_DIR = Utils.join(REFS_DIR, "heads");
-    /**
-     * The objects directory. Contains blobs of files and commits.
-     */
+    // The branches directory. Contains one file for each branch. Current head of branch documented inside file.
+    public static final File BRANCHES_DIR = Utils.join(REFS_DIR, "branches");
+    // The objects directory. Contains blobs of files and commits.
     public static final File OBJECTS_DIR = Utils.join(GITLET_DIR, "objects");
-
-    /**
-     * The HEAD pointer.
-     */
+    // The HEAD pointer. Points to current branch (in a detached HEAD state to a commit).
     public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
 
     public static void setupPersistence() {
         /** Set up persistence. */
         GITLET_DIR.mkdir();
         REFS_DIR.mkdir();
+        BRANCHES_DIR.mkdir();
         OBJECTS_DIR.mkdir();
     }
-
-    public static Commit currentCommit;
 
     /**
      * Initial commit. Creates a new Gitlet version-control system in the current directory. The system
@@ -95,7 +77,7 @@ public class Repository implements Serializable {
         initialCommit.saveCommit();
 
         /* Set up master branch. */
-        File master = Utils.join(BRANCHES, "master");
+        File master = Utils.join(BRANCHES_DIR, "master");
         Utils.writeContents(master, initialCommit.id);
         /** Set current branch to master. */
         Utils.writeContents(HEAD, "master");
@@ -117,7 +99,10 @@ public class Repository implements Serializable {
     }
 
     public static Commit getCurrentCommit() {
-        return currentCommit;
+        String head = Utils.readContentsAsString(HEAD);
+        File branch = Utils.join(BRANCHES_DIR, head);
+        String commitID = Utils.readContentsAsString(branch);
+        return Commit.getCommitByID(commitID);
     }
 
     public static void commit(String message) throws IOException {
@@ -233,7 +218,7 @@ public class Repository implements Serializable {
 
     public static void status() {
     }
-
+/**
     public static void checkout(String[] args) {
         if (args.length == 1) {
             checkoutBranch();
@@ -245,5 +230,5 @@ public class Repository implements Serializable {
             System.out.println("Incorrect operands.");
             System.exit(0);
         }
-    }
+    } */
 }
