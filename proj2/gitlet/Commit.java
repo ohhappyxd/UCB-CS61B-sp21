@@ -9,6 +9,11 @@ import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
 
 import static gitlet.Utils.join;
+import static gitlet.Repository.CWD;
+import static gitlet.Repository.GITLET_DIR;
+import static gitlet.Repository.COMMITS;
+import static gitlet.Repository.BRANCHES_DIR;
+import static gitlet.Repository.OBJECTS_DIR;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -17,15 +22,6 @@ import static gitlet.Utils.join;
  *  @author Xinxin
  */
 public class Commit implements Serializable {
-    public static final File CWD = new File(System.getProperty("user.dir"));
-    /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
-    /** The commits directory. */
-    static final File COMMITS = Utils.join(GITLET_DIR, "commits");
-    /** File documenting current commit. */
-    public static final File CURRENT_COMMIT = Utils.join(GITLET_DIR, "CURRENT_COMMIT");
-    /** The branches directory. */
-    public static final File BRANCHES = Utils.join(GITLET_DIR, "branches");
     /**
      * TODO: add instance variables here.
      *
@@ -51,10 +47,9 @@ public class Commit implements Serializable {
     public Commit(String message, Date timestamp) {
         this.message = message;
         this.timestamp = timestamp;
-        this.id = Utils.sha1(SerializeUtils.toByteArray(this));
         /** The field blobs maps file names to their SHA-1 hash. */
         this.blobs = new HashMap<>();
-        Utils.writeObject(CURRENT_COMMIT, this);
+        this.id = Utils.sha1(SerializeUtils.toByteArray(this));
     }
 
     /** Creates a new commit, copying the blobs map from parent commit,
@@ -62,25 +57,33 @@ public class Commit implements Serializable {
     public Commit(String message) {
         this.message = message;
         this.timestamp = new Date();
-        Commit lastCommit = Utils.readObject(CURRENT_COMMIT, Commit.class);
+        Commit lastCommit = Repository.getCurrentCommit();
         this.blobs = lastCommit.blobs;
         this.parent1 = lastCommit.id;
         this.id = Utils.sha1(SerializeUtils.toByteArray(this));
-        Utils.writeObject(CURRENT_COMMIT, this);
         // Update master pointer.
-        File master = Utils.join(BRANCHES, "master");
+        File master = Utils.join(BRANCHES_DIR, "master");
         Utils.writeContents(master, this.id);
     }
 
-
+    public static Commit getCommitByID(String id) {
+        String folder = SerializeUtils.getDirFromID(id);
+        String fileName = SerializeUtils.getFileNameFromID(id);
+        File commitFile = Utils.join(OBJECTS_DIR, folder, fileName);
+        return Utils.readObject(commitFile, Commit.class);
+    }
 
     /* TODO: fill in the rest of this class. */
     //Saves the commit object.
     public void saveCommit() throws IOException {
-        File outFile = Utils.join(COMMITS, this.id);
-        if (!outFile.exists()) {
-            outFile.createNewFile();
-        }
+        String folder = SerializeUtils.getDirFromID(this.id);
+        File dir = Utils.join(OBJECTS_DIR, folder);
+        dir.mkdir();
+        String fileName = SerializeUtils.getFileNameFromID(this.id);
+        File outFile = Utils.join(dir, fileName);
+        outFile.createNewFile();
         Utils.writeObject(outFile, this);
+        // Updates the Commit file.
+        // String commits = Utils.readContentsAsString(COMMITS);
     }
 }

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Formatter;
-import java.util.ListIterator;
 import java.util.Map;
 
 import static gitlet.Utils.*;
@@ -15,9 +14,17 @@ import static gitlet.Utils.*;
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
  *
+ *  .gitlet
+ *     ├── refs/
+ *     │ ├── commits
+ *     │ └── branches/
+ *     ├── objects/
+ *     ├── HEAD
+ *     └── stage
+ *
  *  @author Xinxin
  */
-public class Repository {
+public class Repository{
     /**
      * TODO: add instance variables here.
      *
@@ -26,50 +33,30 @@ public class Repository {
      * variable is used. We've provided two examples for you.
      */
 
-    /**
-     * The current working directory.
-     */
+    /** Directories and files for persistence. */
+    // The current working directory.
     public static final File CWD = new File(System.getProperty("user.dir"));
-    /**
-     * The .gitlet directory.
-     */
+    // The .gitlet directory.
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    /**
-     * The Staging area
-     */
+    // The Staging area, represented with an index file.
     public static final File STAGE = Utils.join(GITLET_DIR, "stage");
-    /**
-     * The commits directory.
-     */
-    public static final File COMMITS = Utils.join(GITLET_DIR, "commits");
-    /**
-     * The blobs directory.
-     */
-    public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
-    /**
-     * The branches directory.
-     */
-    public static final File BRANCHES = Utils.join(GITLET_DIR, "branches");
-    /**
-     * The HEAD file.
-     */
+    //The Reference directory, contains branches directory and commits file.
+    public static final File REFS_DIR = Utils.join(GITLET_DIR, "refs");
+    // The commits file. Contains all commit IDs.
+    public static final File COMMITS = Utils.join(REFS_DIR, "commits");
+    // The branches directory. Contains one file for each branch. Current head of branch documented inside file.
+    public static final File BRANCHES_DIR = Utils.join(REFS_DIR, "branches");
+    // The objects directory. Contains blobs of files and commits.
+    public static final File OBJECTS_DIR = Utils.join(GITLET_DIR, "objects");
+    // The HEAD pointer. Points to current branch (in a detached HEAD state to a commit).
     public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
-    /**
-     * File documenting current commit.
-     */
-    public static final File CURRENT_COMMIT = Utils.join(GITLET_DIR, "CURRENT_COMMIT");
 
-    public static Commit currentCommit;
-
-    /* TODO: fill in the rest of this class. */
     public static void setupPersistence() {
+        /** Set up persistence. */
         GITLET_DIR.mkdir();
-        /** Create folder for commits. */
-        COMMITS.mkdir();
-        /** Create folders for staging area. */
-        STAGE.mkdir();
-        /** Create folder for blobs. */
-        BLOBS.mkdir();
+        REFS_DIR.mkdir();
+        BRANCHES_DIR.mkdir();
+        OBJECTS_DIR.mkdir();
     }
 
     /**
@@ -90,7 +77,7 @@ public class Repository {
         initialCommit.saveCommit();
 
         /* Set up master branch. */
-        File master = Utils.join(BRANCHES, "master");
+        File master = Utils.join(BRANCHES_DIR, "master");
         Utils.writeContents(master, initialCommit.id);
         /** Set current branch to master. */
         Utils.writeContents(HEAD, "master");
@@ -112,7 +99,10 @@ public class Repository {
     }
 
     public static Commit getCurrentCommit() {
-        return currentCommit;
+        String head = Utils.readContentsAsString(HEAD);
+        File branch = Utils.join(BRANCHES_DIR, head);
+        String commitID = Utils.readContentsAsString(branch);
+        return Commit.getCommitByID(commitID);
     }
 
     public static void commit(String message) throws IOException {
@@ -169,7 +159,7 @@ public class Repository {
      */
     public static void log() {
         String head = Utils.readContentsAsString(HEAD);
-        File branch = new File(BRANCHES, head);
+        File branch = new File(BRANCHES_DIR, head);
         String currentCommitId = Utils.readContentsAsString(branch);
         Commit currentCommit = Utils.readObject(Utils.join(COMMITS, currentCommitId), Commit.class);
 
@@ -228,7 +218,7 @@ public class Repository {
 
     public static void status() {
     }
-
+/**
     public static void checkout(String[] args) {
         if (args.length == 1) {
             checkoutBranch();
@@ -240,5 +230,5 @@ public class Repository {
             System.out.println("Incorrect operands.");
             System.exit(0);
         }
-    }
+    } */
 }
