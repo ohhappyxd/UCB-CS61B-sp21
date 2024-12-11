@@ -1,53 +1,63 @@
 package gitlet;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import static gitlet.Utils.join;
+import static gitlet.Repository.CWD;
+import static gitlet.Repository.STAGE_DIR;
+import static gitlet.Repository.INDEX;
 
-public class Stage {
-    /** The current working directory. */
-    public static final File CWD = new File(System.getProperty("user.dir"));
-    /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
-    /** The Staging area */
-    public static final File STAGE = Utils.join(GITLET_DIR, "stage");
-    /** The blobs directory. */
-    public static final File BLOBS = Utils.join(GITLET_DIR, "blobs");
+public class Stage implements Serializable {
+    // Maps file names to their SHA1 hash.
+    private HashMap<String, String> toAdd;
+    private HashSet<String> toRemove;
 
-    static HashMap<String, String> toAdd;
-    static ArrayList<String> toRemove;
+    public Stage() {
+        toAdd = new HashMap<>();
+        toRemove = new HashSet<>();
+    }
 
     /** Adds a copy of the file as it currently exists to the staging area.
      * If the current working version of the file is identical to the version in the current commit,
      * do not stage it to be added, and remove it from the staging area if it is already there.
      * The file will no longer be staged for removal, if it was at the time of the command.*/
     public static void add(String fileName) {
+        // Read INDEX file.
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        stage.addFile(fileName);
+    }
+
+    private void addFile(String fileName) {
         File FileToAdd = Utils.join(CWD, fileName);
-        byte[] ContentToAdd = Utils.readContents(FileToAdd);
-        String sha1ToAdd = Utils.sha1(ContentToAdd);
+        String sha1ToAdd = SerializeUtils.generateSHA1FromFile(FileToAdd);
 
         if (Repository.getCurrentCommit().blobs != null &&
                 Repository.getCurrentCommit().blobs.get(fileName).equals(sha1ToAdd)) {
             // if staged for adding, remove it
-            Stage.toAdd.remove(fileName);
-            // remove from files for removal if necessary.
-            Stage.toRemove.remove(fileName);
+            this.toAdd.remove(fileName);
             return;
         }
+        // remove from files for removal if necessary.
+        if (this.toRemove.contains(fileName)) {
+            this.toRemove.remove(fileName);
+        }
 
-        /** Write content to blobs. */
-        File AddFile = Utils.join(BLOBS, sha1ToAdd);
+        /** Write content of the file to be added to the staging area. */
+        File AddFile = Utils.join(STAGE_DIR, sha1ToAdd);
+        byte[] ContentToAdd= Utils.readContents(FileToAdd);
         Utils.writeContents(AddFile, ContentToAdd);
         /** Add mapping to the stage. */
-        Stage.toAdd.put(fileName, sha1ToAdd);
-
-
+        this.toAdd.put(fileName, sha1ToAdd);
+        /** Update index. */
+        Utils.writeObject(INDEX, this);
     }
 
+    /**
     public static void clear() {
         toAdd.clear();
         toRemove.clear();
-    }
+    }*/
 }

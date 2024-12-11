@@ -38,8 +38,10 @@ public class Repository{
     public static final File CWD = new File(System.getProperty("user.dir"));
     // The .gitlet directory.
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    // The Staging area, represented with an index file.
-    public static final File STAGE = Utils.join(GITLET_DIR, "stage");
+    // The Staging area, contains blobs to be staged, status tracked by the index file.
+    public static final File STAGE_DIR = Utils.join(GITLET_DIR, "stage");
+    // The index file tracking the staging area.
+    public static final File INDEX = Utils.join(GITLET_DIR, "index");
     //The Reference directory, contains branches directory and commits file.
     public static final File REFS_DIR = Utils.join(GITLET_DIR, "refs");
     // The commits file. Contains all commit IDs.
@@ -51,12 +53,17 @@ public class Repository{
     // The HEAD pointer. Points to current branch (in a detached HEAD state to a commit).
     public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
 
-    public static void setupPersistence() {
+    public static void setupPersistence() throws IOException {
         /** Set up persistence. */
         GITLET_DIR.mkdir();
         REFS_DIR.mkdir();
         BRANCHES_DIR.mkdir();
         OBJECTS_DIR.mkdir();
+        STAGE_DIR.mkdir();
+        INDEX.createNewFile();
+        COMMITS.createNewFile();
+        HEAD.createNewFile();
+        Utils.writeObject(INDEX, new Stage());
     }
 
     /**
@@ -124,7 +131,7 @@ public class Repository{
             newCommit.blobs.remove(fileName);
         }
         newCommit.saveCommit();
-        Stage.clear();
+        // Stage.clear();
     }
 
     /**

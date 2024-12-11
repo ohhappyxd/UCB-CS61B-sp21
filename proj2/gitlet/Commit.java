@@ -49,7 +49,7 @@ public class Commit implements Serializable {
         this.timestamp = timestamp;
         /** The field blobs maps file names to their SHA-1 hash. */
         this.blobs = new HashMap<>();
-        this.id = Utils.sha1(SerializeUtils.toByteArray(this));
+        this.id = SerializeUtils.generateSHA1FromObject(this);
     }
 
     /** Creates a new commit, copying the blobs map from parent commit,
@@ -60,7 +60,7 @@ public class Commit implements Serializable {
         Commit lastCommit = Repository.getCurrentCommit();
         this.blobs = lastCommit.blobs;
         this.parent1 = lastCommit.id;
-        this.id = Utils.sha1(SerializeUtils.toByteArray(this));
+        this.id = SerializeUtils.generateSHA1FromObject(this);
         // Update master pointer.
         File master = Utils.join(BRANCHES_DIR, "master");
         Utils.writeContents(master, this.id);
@@ -83,7 +83,9 @@ public class Commit implements Serializable {
         File outFile = Utils.join(dir, fileName);
         outFile.createNewFile();
         Utils.writeObject(outFile, this);
-        // Updates the Commit file.
-        // String commits = Utils.readContentsAsString(COMMITS);
+        // Updates the Commits file.
+        String commits = Utils.readContentsAsString(COMMITS);
+        commits = commits + this.id;
+        Utils.writeContents(COMMITS, commits);
     }
 }
