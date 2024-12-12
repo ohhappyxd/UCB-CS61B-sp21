@@ -113,25 +113,19 @@ public class Repository{
     }
 
     public static void commit(String message) throws IOException {
-        if (Stage.toAdd.isEmpty() && Stage.toRemove.isEmpty()) {
+        // Read INDEX file.
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        if (stage.isToAddEmpty() && stage.isToRemoveEmpty()) {
             System.out.println("No changes added to the commit.");
         }
         if (message.isEmpty()) {
             System.out.println("Please enter a commit message.");
         }
         Commit newCommit = new Commit(message);
-        for (Map.Entry<String, String> entry : Stage.toAdd.entrySet()) {
-            String file = entry.getKey();
-            String sha1 = entry.getValue();
-            newCommit.blobs.put(file, sha1);
-        }
-        // Todo: files tracked in the current commit may be untracked in the new commit
-        //  as a result being staged for removal by the rm command
-        for (String fileName : Stage.toRemove) {
-            newCommit.blobs.remove(fileName);
-        }
+        stage.updateCommit(newCommit);
+
         newCommit.saveCommit();
-        // Stage.clear();
+        stage.clear();
     }
 
     /**

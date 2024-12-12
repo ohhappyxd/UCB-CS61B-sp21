@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import static gitlet.Utils.join;
 import static gitlet.Repository.CWD;
@@ -18,16 +19,6 @@ public class Stage implements Serializable {
     public Stage() {
         toAdd = new HashMap<>();
         toRemove = new HashSet<>();
-    }
-
-    /** Adds a copy of the file as it currently exists to the staging area.
-     * If the current working version of the file is identical to the version in the current commit,
-     * do not stage it to be added, and remove it from the staging area if it is already there.
-     * The file will no longer be staged for removal, if it was at the time of the command.*/
-    public static void add(String fileName) {
-        // Read INDEX file.
-        Stage stage = Utils.readObject(INDEX, Stage.class);
-        stage.addFile(fileName);
     }
 
     private void addFile(String fileName) {
@@ -55,9 +46,46 @@ public class Stage implements Serializable {
         Utils.writeObject(INDEX, this);
     }
 
-    /**
-    public static void clear() {
-        toAdd.clear();
-        toRemove.clear();
-    }*/
+    /** Adds a copy of the file as it currently exists to the staging area.
+     * If the current working version of the file is identical to the version in the current commit,
+     * do not stage it to be added, and remove it from the staging area if it is already there.
+     * The file will no longer be staged for removal, if it was at the time of the command.*/
+    public static void add(String fileName) {
+        // Read INDEX file.
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        stage.addFile(fileName);
+    }
+
+    public boolean isToAddEmpty() {
+        return this.toAdd.isEmpty();
+    }
+
+    public boolean isToRemoveEmpty() {
+        return this.toRemove.isEmpty();
+    }
+
+
+
+    public void updateCommit(Commit commit) {
+        for (Map.Entry<String, String> entry : this.toAdd.entrySet()) {
+            String file = entry.getKey();
+            String sha1 = entry.getValue();
+            commit.blobs.put(file, sha1);
+        }
+        // Todo: files tracked in the current commit may be untracked in the new commit
+        //  as a result being staged for removal by the rm command
+        for (String fileName : this.toRemove) {
+            commit.blobs.remove(fileName);
+        }
+    }
+
+
+    public void clear() {
+        // Read INDEX file.
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        this.toAdd.clear();
+        this.toRemove.clear();
+        /** Update index. */
+        Utils.writeObject(INDEX, this);
+    }
 }

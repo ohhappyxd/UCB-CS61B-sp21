@@ -58,7 +58,7 @@ public class Commit implements Serializable {
         this.message = message;
         this.timestamp = new Date();
         Commit lastCommit = Repository.getCurrentCommit();
-        this.blobs = lastCommit.blobs;
+        this.blobs = (HashMap<String, String>) lastCommit.blobs.clone();
         this.parent1 = lastCommit.id;
         this.id = SerializeUtils.generateSHA1FromObject(this);
         // Update master pointer.
