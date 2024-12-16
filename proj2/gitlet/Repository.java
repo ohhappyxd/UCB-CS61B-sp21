@@ -92,11 +92,8 @@ public class Repository{
 
     /**
      * Adds a copy of the file as it currently exists to the staging area.
-     * If the current working version of the file is identical to the version in the current commit,
-     * do not stage it to be added, and remove it from the staging area if it is already there.
-     * The file will no longer be staged for removal, if it was at the time of the command.
      */
-    public static void add(String fileName) {
+    public static void add(String fileName) throws IOException {
         File FileToAdd = Utils.join(CWD, fileName);
         if (!FileToAdd.exists()) {
             System.out.println("File does not exist.");
@@ -117,13 +114,15 @@ public class Repository{
         Stage stage = Utils.readObject(INDEX, Stage.class);
         if (stage.isToAddEmpty() && stage.isToRemoveEmpty()) {
             System.out.println("No changes added to the commit.");
+            return;
         }
         if (message.isEmpty()) {
             System.out.println("Please enter a commit message.");
+            return;
         }
         Commit newCommit = new Commit(message);
         stage.updateCommit(newCommit);
-
+        stage.saveFiles();
         newCommit.saveCommit();
         stage.clear();
     }
@@ -135,14 +134,18 @@ public class Repository{
      * it unless it is tracked in the current commit).
      */
     public static void rm(String fileName) {
-        if (Stage.toAdd.containsKey(fileName)) {
-            Stage.toAdd.remove(fileName);
+        // Read INDEX file.
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        if (stage.fileIsToAdd(fileName)) {
+            stage.removeFileToAdd(fileName);
+            //TODO: Remove file also from staging area
         }
-        if (Repository.getCurrentCommit().blobs.containsKey(fileName)) {
-            Stage.toRemove.add(fileName);
+        if (Repository.getCurrentCommit().containsFile(fileName)) {
+            stage.addFileToRemove(fileName);
             Utils.restrictedDelete(Utils.join(CWD, fileName));
         }
-        if (!Stage.toAdd.containsKey(fileName) && !Repository.getCurrentCommit().blobs.containsKey(fileName)) {
+        // TODO: If the file is neither staged nor tracked by the head commit, print the error message
+        if (!stage.fileIsToAdd(fileName) && !Repository.getCurrentCommit().containsFile(fileName)) {
             System.out.println("No reason to remove the file.");
         }
     }
@@ -218,6 +221,10 @@ public class Repository{
     }
 
     public static void status() {
+    }
+
+    public static String getCurrentBranch() {
+        return Utils.readContentsAsString(HEAD);
     }
 /**
     public static void checkout(String[] args) {

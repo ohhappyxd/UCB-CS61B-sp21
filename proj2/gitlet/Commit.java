@@ -14,6 +14,7 @@ import static gitlet.Repository.GITLET_DIR;
 import static gitlet.Repository.COMMITS;
 import static gitlet.Repository.BRANCHES_DIR;
 import static gitlet.Repository.OBJECTS_DIR;
+import static gitlet.Repository.HEAD;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -41,7 +42,7 @@ public class Commit implements Serializable {
     /** Second parent of the Commit. */
     public String parent2;
     /** A mapping of SHA-1 hash of blobs to the files in the blobs directory. */
-    public HashMap<String, String> blobs;
+    private HashMap<String, String> blobs;
 
     /** For initial commit only. */
     public Commit(String message, Date timestamp) {
@@ -61,9 +62,9 @@ public class Commit implements Serializable {
         this.blobs = (HashMap<String, String>) lastCommit.blobs.clone();
         this.parent1 = lastCommit.id;
         this.id = SerializeUtils.generateSHA1FromObject(this);
-        // Update master pointer.
-        File master = Utils.join(BRANCHES_DIR, "master");
-        Utils.writeContents(master, this.id);
+        // Update head pointer.
+        File head = Utils.join(BRANCHES_DIR, Repository.getCurrentBranch());
+        Utils.writeContents(head, this.id);
     }
 
     public static Commit getCommitByID(String id) {
@@ -88,4 +89,30 @@ public class Commit implements Serializable {
         commits = commits + this.id;
         Utils.writeContents(COMMITS, commits);
     }
+
+    // Returns if this commit contains the file by the name fileName.
+    public boolean containsFile(String fileName) {
+        return this.blobs.containsKey(fileName);
+    }
+
+    // Add a file to this commit.
+    public void stageFile(String file, String sha1) {
+        this.blobs.put(file, sha1);
+    }
+
+    // Removes a file from current commit.
+    public void removeFile(String file) {
+        this.blobs.remove(file);
+    }
+
+    // Returns if this commit contains no mapping to files.
+    public boolean containsNothing() {
+        return this.blobs == null;
+    }
+
+    // Returns the SHA1 hash of a file in this commit.
+    public String getSha1(String fileName) {
+        return this.blobs.get(fileName);
+    }
+
 }
