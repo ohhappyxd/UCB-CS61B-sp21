@@ -113,4 +113,12 @@ public class Stage implements Serializable {
     public void addFileToRemove(String fileName) {
         this.toRemove.add(fileName);
     }
+
+    public void deleteFileFromStage(String fileName) {
+        /** Write content of the file to be added to the staging area. */
+        String sha1ToDel = this.toAdd.get(fileName);
+        File Folder = Utils.join(STAGE_DIR, SerializeUtils.getDirFromID(sha1ToDel));
+        File FileToDelete = Utils.join(Folder,SerializeUtils.getFileNameFromID(sha1ToDel));
+        Utils.restrictedDelete(FileToDelete);
+    }
 }

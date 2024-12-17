@@ -138,16 +138,20 @@ public class Repository{
         Stage stage = Utils.readObject(INDEX, Stage.class);
         if (stage.fileIsToAdd(fileName)) {
             stage.removeFileToAdd(fileName);
-            //TODO: Remove file also from staging area
+            //Remove file also from staging area
+            stage.deleteFileFromStage(fileName);
+
+        }
+        // If the file is neither staged nor tracked by the head commit, print the error message
+        if (!stage.fileIsToAdd(fileName) && !Repository.getCurrentCommit().containsFile(fileName)) {
+            System.out.println("No reason to remove the file.");
+            return;
         }
         if (Repository.getCurrentCommit().containsFile(fileName)) {
             stage.addFileToRemove(fileName);
             Utils.restrictedDelete(Utils.join(CWD, fileName));
         }
-        // TODO: If the file is neither staged nor tracked by the head commit, print the error message
-        if (!stage.fileIsToAdd(fileName) && !Repository.getCurrentCommit().containsFile(fileName)) {
-            System.out.println("No reason to remove the file.");
-        }
+
     }
 
     /**
@@ -165,13 +169,16 @@ public class Repository{
         String head = Utils.readContentsAsString(HEAD);
         File branch = new File(BRANCHES_DIR, head);
         String currentCommitId = Utils.readContentsAsString(branch);
-        Commit currentCommit = Utils.readObject(Utils.join(COMMITS, currentCommitId), Commit.class);
+        Commit currentCommit = Utils.readObject(Utils.join(COMMITS,
+                SerializeUtils.getDirFromID(currentCommitId),
+                SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
+        String log = "";
 
         while (currentCommitId != null) {
             Formatter formatter = new Formatter();
             String formattedDate = formatter.format("%ta %1$tb %1$td %1$tT %1$tY %1$tz", currentCommit.timestamp)
                     .toString();
-            String log = "===" + "\n" + "commit " + currentCommitId + "\n";
+            log = "===" + "\n" + "commit " + currentCommitId + "\n";
             // For merge commits (those that have two parent commits), add a line just below the first, as in
             // Merge: 4975af1 2c1ead1
             if (currentCommit.parent2 != null) {
@@ -179,8 +186,10 @@ public class Repository{
             }
             log = log + formattedDate + "\n" + currentCommit.message + "\n";
             currentCommitId = currentCommit.parent1;
-            currentCommit = Utils.readObject(Utils.join(COMMITS, currentCommitId), Commit.class);
+            currentCommit = Utils.readObject(Utils.join(COMMITS, SerializeUtils.getDirFromID(currentCommitId),
+                    SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
         }
+        System.out.println(log);
     }
 
     public static void globalLog() {
