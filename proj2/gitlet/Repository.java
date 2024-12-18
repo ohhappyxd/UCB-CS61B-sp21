@@ -2,9 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Formatter;
-import java.util.Map;
+import java.util.*;
 
 import static gitlet.Utils.*;
 
@@ -215,12 +213,16 @@ public class Repository{
 
     public static void find(String message) {
         String result = "";
-        if (Utils.plainFilenamesIn(COMMITS) != null) {
-            for (String commitId : Utils.plainFilenamesIn(COMMITS)) {
-                Commit commit = Utils.readObject(Utils.join(COMMITS, commitId), Commit.class);
-                if (commit.message.equals(message)) {
-                    result = result + commit.id + "\n";
-                }
+        String commitIds = Utils.readContentsAsString(COMMITS);
+        Set<String> Ids = new HashSet<>();
+        while (!commitIds.isEmpty()) {
+            Ids.add(commitIds.substring(0, 40));
+            commitIds = commitIds.substring(40);
+        }
+        for (String id : Ids) {
+            Commit commit = Commit.getCommitByID(id);
+            if (commit.message.equals(message)) {
+                result = result + commit.id;
             }
         }
         if (result.isEmpty()) {
@@ -230,6 +232,7 @@ public class Repository{
     }
 
     public static void status() {
+        // Thoughts: implement multiple functions in Stage and Repo to produce sections of status
     }
 
     public static String getCurrentBranch() {
