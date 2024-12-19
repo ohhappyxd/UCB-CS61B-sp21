@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static gitlet.Utils.*;
 
@@ -231,8 +232,42 @@ public class Repository{
         System.out.println(result);
     }
 
+    /** Status Format:
+     * === Branches ===
+     *master
+     other-branch
+
+     === Staged Files ===
+     wug.txt
+     wug2.txt
+
+     === Removed Files ===
+     goodbye.txt
+
+     === Modifications Not Staged For Commit ===
+     junk.txt (deleted)
+     wug3.txt (modified)
+
+     === Untracked Files ===
+     random.stuff*/
     public static void status() {
         // Thoughts: implement multiple functions in Stage and Repo to produce sections of status
+        String branches = Repository.getAllBranch();
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        String stagedFiles = stage.getStagedFiles();
+        String removedFiles = stage.getRemovedFiles();
+
+    }
+
+    private static String getAllBranch() {
+        List<String> branchNames = Utils.plainFilenamesIn(BRANCHES_DIR);
+        if (branchNames != null) {
+            List<String> sortedBranches = branchNames.stream()
+                    .sorted()
+                    .collect(Collectors.toList());
+            return String.join("/n", sortedBranches);
+        }
+        return null;
     }
 
     public static String getCurrentBranch() {

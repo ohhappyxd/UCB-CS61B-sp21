@@ -121,4 +121,10 @@ public class Stage implements Serializable {
         File FileToDelete = Utils.join(Folder,SerializeUtils.getFileNameFromID(sha1ToDel));
         Utils.restrictedDelete(FileToDelete);
     }
+
+    public String getStagedFiles() {
+    }
+
+    public String getRemovedFiles() {
+    }
 }
