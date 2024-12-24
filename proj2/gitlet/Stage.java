@@ -8,6 +8,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.join;
@@ -122,9 +123,20 @@ public class Stage implements Serializable {
         Utils.restrictedDelete(FileToDelete);
     }
 
+    // TODO: consider factor out an util function
     public String getStagedFiles() {
+        String[] files = toAdd.keySet().toArray(new String[toAdd.size()]);
+        files = Stream.of(files)
+                .sorted()
+                .toArray(String[]::new);
+        return String.join("/n", files);
     }
 
     public String getRemovedFiles() {
+        String[] files = toRemove.toArray(new String[toRemove.size()]);
+        files = Stream.of(files)
+                .sorted()
+                .toArray(String[]::new);
+        return String.join("/n", files);
     }
 }

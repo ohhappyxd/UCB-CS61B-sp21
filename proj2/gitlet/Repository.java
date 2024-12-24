@@ -233,7 +233,7 @@ public class Repository{
     }
 
     /** Status Format:
-     * === Branches ===
+     === Branches ===
      *master
      other-branch
 
@@ -252,11 +252,17 @@ public class Repository{
      random.stuff*/
     public static void status() {
         // Thoughts: implement multiple functions in Stage and Repo to produce sections of status
-        String branches = Repository.getAllBranch();
+        String allBranches = Repository.getAllBranch();
+        String markedBranches = allBranches.replace(Repository.getCurrentBranch(),
+                "*" + Repository.getCurrentBranch());
+        String branches = "/n" + "=== Branches ===" + "/n" + markedBranches + "/n";
         Stage stage = Utils.readObject(INDEX, Stage.class);
-        String stagedFiles = stage.getStagedFiles();
-        String removedFiles = stage.getRemovedFiles();
-
+        String stagedFiles = "/n" + "=== Staged Files ===" + "/n" + stage.getStagedFiles() + "/n";
+        String removedFiles = "/n" + "=== Removed Files ===" + "/n" + stage.getRemovedFiles() + "/n";
+        String mod = "/n" + "=== Modifications Not Staged For Commit ===" + "/n";
+        String untracked = "/n" + "=== Untracked Files ===" + "/n" + "/n";
+        String output = branches + stagedFiles + removedFiles + mod + untracked;
+        System.out.println(output);
     }
 
     private static String getAllBranch() {
