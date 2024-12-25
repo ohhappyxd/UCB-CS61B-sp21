@@ -5,8 +5,11 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
+import java.util.Map;
 
 import static gitlet.Utils.join;
 import static gitlet.Repository.CWD;
@@ -115,4 +118,14 @@ public class Commit implements Serializable {
         return this.blobs.get(fileName);
     }
 
+    // Write files in this commit into CWD, overwriting the files if they already exit.
+    public void writeFiles() {
+        for (Map.Entry<String, String> entry : this.blobs.entrySet()) {
+            String fileName = entry.getKey();
+            String sha1 = entry.getValue();
+            File currentFile = Utils.join(CWD, fileName);
+            File newFile = Utils.join(SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
+            Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
 }

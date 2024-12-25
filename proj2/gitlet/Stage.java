@@ -103,6 +103,7 @@ public class Stage implements Serializable {
         }
     }
 
+    // Returns true if the file fileName is staged for addition.
     public boolean fileIsToAdd(String fileName) {
         return this.toAdd.containsKey(fileName);
     }

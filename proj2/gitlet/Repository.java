@@ -250,6 +250,7 @@ public class Repository{
 
      === Untracked Files ===
      random.stuff*/
+    // TODO: Check necessary changes with branching
     public static void status() {
         // Thoughts: implement multiple functions in Stage and Repo to produce sections of status
         String allBranches = Repository.getAllBranch();
@@ -279,17 +280,70 @@ public class Repository{
     public static String getCurrentBranch() {
         return Utils.readContentsAsString(HEAD);
     }
-/**
+
     public static void checkout(String[] args) {
         if (args.length == 1) {
-            checkoutBranch();
-        } else if (args.length == 2 && args[1] == "--") {
+            String branch = args[0];
+            if (Repository.untrackedFileExist()) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+            if (branch.equals(Utils.readContentsAsString(HEAD))) {
+                System.out.println("No need to checkout the current branch.");
+                return;
+            }
+            if (Utils.plainFilenamesIn(BRANCHES_DIR).contains(branch)) {
+                checkoutBranch(branch);
+            } else {
+                System.out.println("No such branch exists.");
+
+            }
+
+        } else if (args.length == 2 && Objects.equals(args[1], "--")) {
             checkoutFile();
-        } else if (args.length == 3 && args[2 == "--"]) {
+        } else if (args.length == 3 && Objects.equals(args[2], "--")) {
             checkoutFileInCommit();
         } else {
             System.out.println("Incorrect operands.");
             System.exit(0);
         }
-    } */
+    }
+
+    private static boolean untrackedFileExist() {
+        for (String fileName : Utils.plainFilenamesIn(CWD)) {
+            if (!Repository.getCurrentCommit().containsFile(fileName)) {
+                Stage stage = Utils.readObject(INDEX, Stage.class);
+                if (!stage.fileIsToAdd(fileName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    /** Takes the version of the file as it exists in the commit with the given id,
+     * and puts it in the working directory, overwriting the version of the file
+     * that’s already there if there is one. The new version of the file is not staged. */
+    private static void checkoutFileInCommit() {
+    }
+
+    /** Takes the version of the file as it exists in the head commit and puts it
+     * in the working directory, overwriting the version of the file that’s already there
+     * if there is one. The new version of the file is not staged. */
+    private static void checkoutFile() {
+    }
+
+    /** checkout branch. Takes all files in the commit at the head of the given branch,
+     * and puts them in the working directory, overwriting the versions of the files that are
+     * already there if they exist. Also, at the end of this command, the given branch will
+     * now be considered the current branch (HEAD). Any files that are tracked in the
+     * current branch but are not present in the checked-out branch are deleted.
+     * The staging area is cleared, unless the checked-out branch is the current branch. */
+    private static void checkoutBranch(String branch) {
+        File branchFile = Utils.join(BRANCHES_DIR, branch);
+        String commitId = Utils.readContentsAsString(branchFile);
+        Commit commit = Commit.getCommitByID(commitId);
+        commit.writeFiles();
+    }
 }
