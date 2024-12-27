@@ -2,6 +2,8 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -296,13 +298,11 @@ public class Repository{
                 checkoutBranch(branch);
             } else {
                 System.out.println("No such branch exists.");
-
             }
-
-        } else if (args.length == 2 && Objects.equals(args[1], "--")) {
-            checkoutFile();
-        } else if (args.length == 3 && Objects.equals(args[2], "--")) {
-            checkoutFileInCommit();
+        } else if (args.length == 2 && Objects.equals(args[0], "--")) {
+            checkoutFile(args[1]);
+        } else if (args.length == 3 && Objects.equals(args[1], "--")) {
+            checkoutFileInCommit(args[0], args[2]);
         } else {
             System.out.println("Incorrect operands.");
             System.exit(0);
@@ -325,13 +325,33 @@ public class Repository{
     /** Takes the version of the file as it exists in the commit with the given id,
      * and puts it in the working directory, overwriting the version of the file
      * that’s already there if there is one. The new version of the file is not staged. */
-    private static void checkoutFileInCommit() {
+    private static void checkoutFileInCommit(String commitId, String fileName) throws IOException {
+        Commit commit = Commit.getCommitByID(commitId);
+        if (commit == null) {
+            System.out.println("No commit with that id exists.");
+            return;
+        }
+        if (!commit.containsFile(fileName)) {
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
+        File newFile = commit.getFileByName(fileName);
+        File currentFile = Utils.join(CWD, fileName);
+        Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     /** Takes the version of the file as it exists in the head commit and puts it
      * in the working directory, overwriting the version of the file that’s already there
      * if there is one. The new version of the file is not staged. */
-    private static void checkoutFile() {
+    private static void checkoutFile(String fileName) throws IOException {
+        File currentFile = Utils.join(CWD, fileName);
+        Commit currentCommit = Repository.getCurrentCommit();
+        if (!currentCommit.containsFile(fileName)) {
+            System.out.println("File does not exist in that commit.");
+            return;
+        }
+        File newFile = currentCommit.getFileByName(fileName);
+        Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     /** checkout branch. Takes all files in the commit at the head of the given branch,
@@ -344,6 +364,18 @@ public class Repository{
         File branchFile = Utils.join(BRANCHES_DIR, branch);
         String commitId = Utils.readContentsAsString(branchFile);
         Commit commit = Commit.getCommitByID(commitId);
+        Repository.removeUntrackedFiles();
         commit.writeFiles();
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        stage.clear();
+        Utils.writeContents(HEAD, branch);
+    }
+
+    private static void removeUntrackedFiles() {
+        for (String fileName : Utils.plainFilenamesIn(CWD)) {
+            if (!Repository.getCurrentCommit().containsFile(fileName)) {
+                Utils.restrictedDelete(Utils.join(CWD, fileName));
+            }
+        }
     }
 }

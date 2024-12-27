@@ -71,10 +71,23 @@ public class Commit implements Serializable {
     }
 
     public static Commit getCommitByID(String id) {
-        String folder = SerializeUtils.getDirFromID(id);
-        String fileName = SerializeUtils.getFileNameFromID(id);
-        File commitFile = Utils.join(OBJECTS_DIR, folder, fileName);
-        return Utils.readObject(commitFile, Commit.class);
+        if (id.length() == 40) {
+            String folder = SerializeUtils.getDirFromID(id);
+            String fileName = SerializeUtils.getFileNameFromID(id);
+            File commitFile = Utils.join(OBJECTS_DIR, folder, fileName);
+            return Utils.readObject(commitFile, Commit.class);
+        } else if (id.length() < 40 && !id.isEmpty()) {
+            String folder = SerializeUtils.getDirFromID(id);
+            if (Utils.plainFilenamesIn(Utils.join(OBJECTS_DIR, folder)) != null) {
+                for (String fileName : Utils.plainFilenamesIn(Utils.join(OBJECTS_DIR, folder))) {
+                    if (fileName.contains(SerializeUtils.getFileNameFromID(id))) {
+                        return Utils.readObject(Utils.join(OBJECTS_DIR, folder, fileName), Commit.class);
+                    }
+                }
+            }
+            return null;
+        }
+
     }
 
     /* TODO: fill in the rest of this class. */
@@ -127,5 +140,11 @@ public class Commit implements Serializable {
             File newFile = Utils.join(SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
             Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
+
+    }
+
+    public File getFileByName(String fileName) {
+        String sha1 = this.getSha1(fileName);
+        return Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
     }
 }
