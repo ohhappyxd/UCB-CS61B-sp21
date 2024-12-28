@@ -84,8 +84,6 @@ public class Stage implements Serializable {
 
 
     public void clear() {
-        // Read INDEX file.
-        Stage stage = Utils.readObject(INDEX, Stage.class);
         this.toAdd.clear();
         this.toRemove.clear();
         /** Update index. */

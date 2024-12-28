@@ -378,4 +378,49 @@ public class Repository{
             }
         }
     }
+
+    public static void branch(String branchName) throws IOException {
+        if (Repository.branchExists(branchName)) {
+            System.out.println("A branch with that name already exists.");
+            return;
+        }
+        File branch = Utils.join(BRANCHES_DIR, branchName);
+        branch.createNewFile();
+        Utils.writeContents(branch, Repository.getCurrentCommit());
+    }
+
+    private static boolean branchExists(String branchName) {
+        for (String branch : Utils.plainFilenamesIn(BRANCHES_DIR)) {
+            if (branch.equals(branchName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void rmBranch(String branchName) {
+        if (!branchExists(branchName)) {
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        if (branchName.equals(Repository.getCurrentBranch())) {
+            System.out.println("Cannot remove the current branch.");
+            return;
+        }
+        File branch = Utils.join(BRANCHES_DIR, branchName);
+        Utils.restrictedDelete(branch);
+    }
+
+    public static void reset(String commitId) {
+        Commit commit = Commit.getCommitByID(commitId);
+        for (String fileName : commit.getFileNames()) {
+            String[] args = new String[]{commitId, "--", fileName};
+            Repository.checkout(args);
+        }
+        String branch = Repository.getCurrentBranch();
+        Utils.writeContents(Utils.join(BRANCHES_DIR, branch), commit.id);
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        stage.clear();
+
+    }
 }

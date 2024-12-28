@@ -53,6 +53,15 @@ public class Main {
             case "status":
                 validateNumArgs(args, 1);
                 Repository.status();
+            case "branch":
+                validateNumArgs(args, 2);
+                Repository.branch(args[1]);
+            case "rm-branch":
+                validateNumArgs(args, 2);
+                Repository.rmBranch(args[1]);
+            case "reset":
+                validateNumArgs(args, 2);
+                Repository.reset(args[1]);
         }
     }
 

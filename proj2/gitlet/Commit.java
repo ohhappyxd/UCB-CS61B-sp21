@@ -65,7 +65,7 @@ public class Commit implements Serializable {
         this.blobs = (HashMap<String, String>) lastCommit.blobs.clone();
         this.parent1 = lastCommit.id;
         this.id = SerializeUtils.generateSHA1FromObject(this);
-        // Update head pointer.
+        // Update pointer in branch.
         File head = Utils.join(BRANCHES_DIR, Repository.getCurrentBranch());
         Utils.writeContents(head, this.id);
     }
@@ -146,5 +146,9 @@ public class Commit implements Serializable {
     public File getFileByName(String fileName) {
         String sha1 = this.getSha1(fileName);
         return Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
+    }
+
+    public String[] getFileNames() {
+        return this.blobs.keySet().toArray(new String[0]);
     }
 }
