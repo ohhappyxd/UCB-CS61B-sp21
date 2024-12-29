@@ -70,12 +70,15 @@ public class Commit implements Serializable {
         Utils.writeContents(head, this.id);
     }
 
+    // Returns the commit object by the ID id, returns null if such commit doesn't exist.
     public static Commit getCommitByID(String id) {
         if (id.length() == 40) {
             String folder = SerializeUtils.getDirFromID(id);
             String fileName = SerializeUtils.getFileNameFromID(id);
             File commitFile = Utils.join(OBJECTS_DIR, folder, fileName);
-            return Utils.readObject(commitFile, Commit.class);
+            if (commitFile.exists()) {
+                return Utils.readObject(commitFile, Commit.class);
+            }
         } else if (id.length() < 40 && !id.isEmpty()) {
             String folder = SerializeUtils.getDirFromID(id);
             if (Utils.plainFilenamesIn(Utils.join(OBJECTS_DIR, folder)) != null) {
@@ -85,9 +88,8 @@ public class Commit implements Serializable {
                     }
                 }
             }
-            return null;
         }
-
+        return null;
     }
 
     /* TODO: fill in the rest of this class. */
@@ -132,7 +134,7 @@ public class Commit implements Serializable {
     }
 
     // Write files in this commit into CWD, overwriting the files if they already exit.
-    public void writeFiles() {
+    public void writeFiles() throws IOException {
         for (Map.Entry<String, String> entry : this.blobs.entrySet()) {
             String fileName = entry.getKey();
             String sha1 = entry.getValue();

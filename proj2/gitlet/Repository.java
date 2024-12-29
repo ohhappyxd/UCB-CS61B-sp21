@@ -283,7 +283,7 @@ public class Repository{
         return Utils.readContentsAsString(HEAD);
     }
 
-    public static void checkout(String[] args) {
+    public static void checkout(String[] args) throws IOException {
         if (args.length == 1) {
             String branch = args[0];
             if (Repository.untrackedFileExist()) {
@@ -360,7 +360,7 @@ public class Repository{
      * now be considered the current branch (HEAD). Any files that are tracked in the
      * current branch but are not present in the checked-out branch are deleted.
      * The staging area is cleared, unless the checked-out branch is the current branch. */
-    private static void checkoutBranch(String branch) {
+    private static void checkoutBranch(String branch) throws IOException {
         File branchFile = Utils.join(BRANCHES_DIR, branch);
         String commitId = Utils.readContentsAsString(branchFile);
         Commit commit = Commit.getCommitByID(commitId);
@@ -411,7 +411,7 @@ public class Repository{
         Utils.restrictedDelete(branch);
     }
 
-    public static void reset(String commitId) {
+    public static void reset(String commitId) throws IOException {
         Commit commit = Commit.getCommitByID(commitId);
         for (String fileName : commit.getFileNames()) {
             String[] args = new String[]{commitId, "--", fileName};
