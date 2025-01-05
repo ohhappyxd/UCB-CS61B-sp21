@@ -3,8 +3,6 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,7 +28,7 @@ public class Stage implements Serializable {
          * do not stage it to be added, and remove it from the staging area if it is already there.
          * The file will no longer be staged for removal, if it was at the time of the command.
          */
-         if (!Repository.getCurrentCommit().containsNothing() &&
+         if (Repository.getCurrentCommit().getSha1(fileName) != null &&
                 Repository.getCurrentCommit().getSha1(fileName).equals(sha1ToAdd)) {
             // if staged for adding, remove it
             this.toAdd.remove(fileName);
@@ -94,10 +92,12 @@ public class Stage implements Serializable {
         for (Map.Entry<String, String> entry : this.toAdd.entrySet()) {
             String file = entry.getKey();
             String sha1 = entry.getValue();
-            String folder = SerializeUtils.getDirFromID(sha1);
-            String fileName = SerializeUtils.getFileNameFromID(sha1);
-            Files.move(Utils.join(STAGE_DIR, folder, fileName).toPath(),
-                    Utils.join(OBJECTS_DIR, folder, fileName).toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File fileSrc = Utils.join(CWD, file);
+            File dirDst = Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1));
+            dirDst.mkdir();
+            File fileDst = Utils.join(dirDst, SerializeUtils.getFileNameFromID(sha1));
+            fileDst.createNewFile();
+            Utils.writeContents(fileDst, Utils.readContents(fileSrc));
         }
     }
 

@@ -2,8 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,7 +16,7 @@ import static gitlet.Utils.*;
  *
  *  .gitlet
  *     ├── refs/
- *     │ ├── commits
+ *     │ ├── commits/
  *     │ └── branches/
  *     ├── objects/
  *     ├── HEAD
@@ -170,15 +169,13 @@ public class Repository{
         String head = Utils.readContentsAsString(HEAD);
         File branch = new File(BRANCHES_DIR, head);
         String currentCommitId = Utils.readContentsAsString(branch);
-        Commit currentCommit = Utils.readObject(Utils.join(COMMITS,
-                SerializeUtils.getDirFromID(currentCommitId),
-                SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
         String log = "";
 
         while (currentCommitId != null) {
-            Formatter formatter = new Formatter();
-            String formattedDate = formatter.format("%ta %1$tb %1$td %1$tT %1$tY %1$tz", currentCommit.timestamp)
-                    .toString();
+            Commit currentCommit = Utils.readObject(Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(currentCommitId),
+                    SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
+            SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
+            String formattedDate = formatter.format(currentCommit.timestamp);
             log = "===" + "\n" + "commit " + currentCommitId + "\n";
             // For merge commits (those that have two parent commits), add a line just below the first, as in
             // Merge: 4975af1 2c1ead1
@@ -187,31 +184,30 @@ public class Repository{
             }
             log = log + formattedDate + "\n" + currentCommit.message + "\n";
             currentCommitId = currentCommit.parent1;
-            currentCommit = Utils.readObject(Utils.join(COMMITS, SerializeUtils.getDirFromID(currentCommitId),
-                    SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
         }
         System.out.println(log);
     }
 
     public static void globalLog() {
-        if (Utils.plainFilenamesIn(COMMITS) != null) {
-            String log = "";
-            for (String commitId : Utils.plainFilenamesIn(COMMITS)) {
-                Commit commit = Utils.readObject(Utils.join(COMMITS, commitId), Commit.class);
-                Formatter formatter = new Formatter();
-                String formattedDate = formatter.format("%ta %1$tb %1$td %1$tT %1$tY %1$tz", commit.timestamp)
-                        .toString();
-                log = "===" + "\n" + "commit " + commitId + "\n";
-                // For merge commits (those that have two parent commits), add a line just below the first, as in
-                // Merge: 4975af1 2c1ead1
-                if (commit.parent2 != null) {
-                    log = log + "Merge: " + commit.parent1.substring(0, 6) + commit.parent2.substring(0, 6);
-                }
-                log = log + formattedDate + "\n" + commit.message + "\n";
+        String commitIds = Utils.readContentsAsString(COMMITS);
+        String log = "";
+        while (!commitIds.isEmpty()) {
+            String nextCommit = commitIds.substring(commitIds.length()-40);
+            Commit commit = Utils.readObject(Utils.join(OBJECTS_DIR,
+                    SerializeUtils.getDirFromID(nextCommit),
+                    SerializeUtils.getFileNameFromID(nextCommit)), Commit.class);
+            SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
+            String formattedDate = formatter.format(commit.timestamp);
+            log = "===" + "\n" + "commit " + nextCommit + "\n";
+            // For merge commits (those that have two parent commits), add a line just below the first, as in
+            // Merge: 4975af1 2c1ead1
+            if (commit.parent2 != null) {
+                log = log + "Merge: " + commit.parent1.substring(0, 7) + commit.parent2.substring(0, 7);
             }
-            System.out.println(log);
+            log = log + formattedDate + "\n" + commit.message + "\n";
+            commitIds = commitIds.substring(0, commitIds.length()-40);
         }
-
+        System.out.println(log);
     }
 
     public static void find(String message) {
@@ -337,7 +333,7 @@ public class Repository{
         }
         File newFile = commit.getFileByName(fileName);
         File currentFile = Utils.join(CWD, fileName);
-        Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Utils.writeContents(currentFile, Utils.readContents(newFile));
     }
 
     /** Takes the version of the file as it exists in the head commit and puts it
@@ -351,7 +347,7 @@ public class Repository{
             return;
         }
         File newFile = currentCommit.getFileByName(fileName);
-        Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Utils.writeContents(currentFile, Utils.readContents(newFile));
     }
 
     /** checkout branch. Takes all files in the commit at the head of the given branch,

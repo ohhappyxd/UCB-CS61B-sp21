@@ -5,8 +5,6 @@ package gitlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
 import java.util.Map;
@@ -140,16 +138,18 @@ public class Commit implements Serializable {
             String sha1 = entry.getValue();
             File currentFile = Utils.join(CWD, fileName);
             File newFile = Utils.join(SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
-            Files.copy(newFile.toPath(), currentFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Utils.writeContents(currentFile, Utils.readContents(newFile));
         }
 
     }
 
+    // Returns a File object with the name fileName.
     public File getFileByName(String fileName) {
         String sha1 = this.getSha1(fileName);
         return Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
     }
 
+    // Returns names of all files saved in this commit as array.
     public String[] getFileNames() {
         return this.blobs.keySet().toArray(new String[0]);
     }

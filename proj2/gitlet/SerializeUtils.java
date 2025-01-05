@@ -28,7 +28,7 @@ public class SerializeUtils {
     }
 
     public static String getDirFromID(String id) {
-        return id.substring(0,1);
+        return id.substring(0,2);
     }
 
     public static String getFileNameFromID(String id) {
