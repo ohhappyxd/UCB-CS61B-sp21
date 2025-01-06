@@ -37,31 +37,40 @@ public class Main {
             case "checkout":
                 // TODO: fill this in
                 validateNumArgs(args,2, 4);
-                Repository.checkout(Arrays.copyOfRange(args, 1, args.length - 1));
+                Repository.checkout(Arrays.copyOfRange(args, 1, args.length));
+                break;
             case "rm":
                 validateNumArgs(args, 2);
                 Repository.rm(args[1]);
+                break;
             case "log":
                 validateNumArgs(args, 1);
                 Repository.log();
+                break;
             case "global-log":
                 validateNumArgs(args, 1);
                 Repository.globalLog();
+                break;
             case "find":
                 validateNumArgs(args, 2);
                 Repository.find(args[1]);
+                break;
             case "status":
                 validateNumArgs(args, 1);
                 Repository.status();
+                break;
             case "branch":
                 validateNumArgs(args, 2);
                 Repository.branch(args[1]);
+                break;
             case "rm-branch":
                 validateNumArgs(args, 2);
                 Repository.rmBranch(args[1]);
+                break;
             case "reset":
                 validateNumArgs(args, 2);
                 Repository.reset(args[1]);
+                break;
         }
     }
 

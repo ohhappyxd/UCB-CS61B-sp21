@@ -63,9 +63,6 @@ public class Commit implements Serializable {
         this.blobs = (HashMap<String, String>) lastCommit.blobs.clone();
         this.parent1 = lastCommit.id;
         this.id = SerializeUtils.generateSHA1FromObject(this);
-        // Update pointer in branch.
-        File head = Utils.join(BRANCHES_DIR, Repository.getCurrentBranch());
-        Utils.writeContents(head, this.id);
     }
 
     // Returns the commit object by the ID id, returns null if such commit doesn't exist.
@@ -104,6 +101,9 @@ public class Commit implements Serializable {
         String commits = Utils.readContentsAsString(COMMITS);
         commits = commits + this.id;
         Utils.writeContents(COMMITS, commits);
+        // Update pointer in branch.
+        File head = Utils.join(BRANCHES_DIR, Repository.getCurrentBranch());
+        Utils.writeContents(head, this.id);
     }
 
     // Returns if this commit contains the file by the name fileName.

@@ -16,7 +16,7 @@ import static gitlet.Utils.*;
  *
  *  .gitlet
  *     ├── refs/
- *     │ ├── commits/
+ *     │ ├── commits
  *     │ └── branches/
  *     ├── objects/
  *     ├── HEAD
@@ -79,15 +79,13 @@ public class Repository{
             return;
         }
         Repository.setupPersistence();
-
         Commit initialCommit = new Commit("initial commit", new Date(0));
-        initialCommit.saveCommit();
-
         /* Set up master branch. */
         File master = Utils.join(BRANCHES_DIR, "master");
         Utils.writeContents(master, initialCommit.id);
         /** Set current branch to master. */
         Utils.writeContents(HEAD, "master");
+        initialCommit.saveCommit();
     }
 
     /**
@@ -176,14 +174,17 @@ public class Repository{
                     SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
             String formattedDate = formatter.format(currentCommit.timestamp);
-            log = "===" + "\n" + "commit " + currentCommitId + "\n";
+            log = log + "===" + "\n" + "commit " + currentCommitId + "\n";
             // For merge commits (those that have two parent commits), add a line just below the first, as in
             // Merge: 4975af1 2c1ead1
             if (currentCommit.parent2 != null) {
-                log = log + "Merge: " + currentCommit.parent1.substring(0, 6) + currentCommit.parent2.substring(0, 6);
+                log = log + "Merge: " + currentCommit.parent1.substring(0, 7) + currentCommit.parent2.substring(0, 7);
             }
-            log = log + formattedDate + "\n" + currentCommit.message + "\n";
+            log = log + "Date: " + formattedDate + "\n" + currentCommit.message + "\n";
             currentCommitId = currentCommit.parent1;
+            if (currentCommitId != null) {
+                log = log + "\n";
+            }
         }
         System.out.println(log);
     }
@@ -198,14 +199,17 @@ public class Repository{
                     SerializeUtils.getFileNameFromID(nextCommit)), Commit.class);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
             String formattedDate = formatter.format(commit.timestamp);
-            log = "===" + "\n" + "commit " + nextCommit + "\n";
+            log = log + "===" + "\n" + "commit " + nextCommit + "\n";
             // For merge commits (those that have two parent commits), add a line just below the first, as in
             // Merge: 4975af1 2c1ead1
             if (commit.parent2 != null) {
                 log = log + "Merge: " + commit.parent1.substring(0, 7) + commit.parent2.substring(0, 7);
             }
-            log = log + formattedDate + "\n" + commit.message + "\n";
+            log = log + "Date: " + formattedDate + "\n" + commit.message + "\n";
             commitIds = commitIds.substring(0, commitIds.length()-40);
+            if (!commitIds.isEmpty()) {
+                log = log + "\n";
+            }
         }
         System.out.println(log);
     }
