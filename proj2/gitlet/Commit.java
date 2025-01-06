@@ -60,7 +60,7 @@ public class Commit implements Serializable {
         this.message = message;
         this.timestamp = new Date();
         Commit lastCommit = Repository.getCurrentCommit();
-        this.blobs = (HashMap<String, String>) lastCommit.blobs.clone();
+        this.blobs = new HashMap<>(lastCommit.blobs);
         this.parent1 = lastCommit.id;
         this.id = SerializeUtils.generateSHA1FromObject(this);
     }
