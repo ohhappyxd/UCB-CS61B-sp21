@@ -8,6 +8,8 @@ import java.io.Serializable;
 import java.util.Date; // TODO: You'll likely use this in this class
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static gitlet.Utils.join;
 import static gitlet.Repository.CWD;
@@ -44,6 +46,7 @@ public class Commit implements Serializable {
     public String parent2;
     /** A mapping of SHA-1 hash of blobs to the files in the blobs directory. */
     private HashMap<String, String> blobs;
+    private static final Logger LOGGER = Logger.getLogger(Commit.class.getName());
 
     /** For initial commit only. */
     public Commit(String message, Date timestamp) {
@@ -89,13 +92,21 @@ public class Commit implements Serializable {
 
     /* TODO: fill in the rest of this class. */
     //Saves the commit object.
-    public void saveCommit() throws IOException {
+    public void saveCommit() {
         String folder = SerializeUtils.getDirFromID(this.id);
         File dir = Utils.join(OBJECTS_DIR, folder);
         dir.mkdir();
         String fileName = SerializeUtils.getFileNameFromID(this.id);
         File outFile = Utils.join(dir, fileName);
-        outFile.createNewFile();
+        try {
+            if (!outFile.createNewFile()) {
+                LOGGER.log(Level.WARNING,
+                        "File already exists or could not be created: {0}", outFile.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create the file: " + outFile.getAbsolutePath(), e);
+            return;  // Return early if the file couldn't be created
+        }
         Utils.writeObject(outFile, this);
         // Updates the Commits file.
         String commits = Utils.readContentsAsString(COMMITS);
@@ -132,7 +143,7 @@ public class Commit implements Serializable {
     }
 
     // Write files in this commit into CWD, overwriting the files if they already exit.
-    public void writeFiles() throws IOException {
+    public void writeFiles() {
         for (Map.Entry<String, String> entry : this.blobs.entrySet()) {
             String fileName = entry.getKey();
             String sha1 = entry.getValue();

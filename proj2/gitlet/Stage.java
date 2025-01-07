@@ -7,21 +7,25 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Stream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static gitlet.Repository.*;
 import static gitlet.Utils.join;
+
 
 public class Stage implements Serializable {
     // Maps file names to their SHA1 hash.
     private HashMap<String, String> toAdd;
     private HashSet<String> toRemove;
+    private static final Logger LOGGER = Logger.getLogger(Stage.class.getName());
 
     public Stage() {
         toAdd = new HashMap<>();
         toRemove = new HashSet<>();
     }
 
-    private void addFile(String fileName) throws IOException {
+    private void addFile(String fileName) {
         File FileToAdd = Utils.join(CWD, fileName);
         String sha1ToAdd = SerializeUtils.generateSHA1FromFile(FileToAdd);
         /** If the current working version of the file is identical to the version in the current commit,
@@ -42,7 +46,15 @@ public class Stage implements Serializable {
         File Folder = Utils.join(STAGE_DIR, SerializeUtils.getDirFromID(sha1ToAdd));
         Folder.mkdir();
         File AddFile = Utils.join(Folder,SerializeUtils.getFileNameFromID(sha1ToAdd));
-        AddFile.createNewFile();
+        try {
+            if (!AddFile.createNewFile()) {
+                LOGGER.log(Level.WARNING,
+                        "File already exists or could not be created: {0}", AddFile.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create the file: " + AddFile.getAbsolutePath(), e);
+            return;  // Return early if the file couldn't be created
+        }
         byte[] ContentToAdd= Utils.readContents(FileToAdd);
         Utils.writeContents(AddFile, ContentToAdd);
         /** Add mapping to the stage. */
@@ -52,7 +64,7 @@ public class Stage implements Serializable {
     }
 
     /** Public interface for adding file*/
-    public static void add(String fileName) throws IOException {
+    public static void add(String fileName) {
         // Read INDEX file.
         Stage stage = Utils.readObject(INDEX, Stage.class);
         stage.addFile(fileName);
@@ -88,7 +100,7 @@ public class Stage implements Serializable {
         Utils.writeObject(INDEX, this);
     }
 
-    public void saveFiles() throws IOException {
+    public void saveFiles() {
         for (Map.Entry<String, String> entry : this.toAdd.entrySet()) {
             String file = entry.getKey();
             String sha1 = entry.getValue();
@@ -96,7 +108,15 @@ public class Stage implements Serializable {
             File dirDst = Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1));
             dirDst.mkdir();
             File fileDst = Utils.join(dirDst, SerializeUtils.getFileNameFromID(sha1));
-            fileDst.createNewFile();
+            try {
+                if (!fileDst.createNewFile()) {
+                    LOGGER.log(Level.WARNING, "File already exists or could not be created: {0}", fileDst.getAbsolutePath());
+                }
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Failed to create the file: " + fileDst.getAbsolutePath(), e);
+                return;  // Return early if the file couldn't be created
+            }
+
             Utils.writeContents(fileDst, Utils.readContents(fileSrc));
         }
     }

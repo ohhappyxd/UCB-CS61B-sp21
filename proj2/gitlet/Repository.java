@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static gitlet.Utils.*;
 
@@ -53,16 +55,42 @@ public class Repository{
     // The HEAD pointer. Points to current branch (in a detached HEAD state to a commit).
     public static final File HEAD = Utils.join(GITLET_DIR, "HEAD");
 
-    public static void setupPersistence() throws IOException {
+    private static final Logger LOGGER = Logger.getLogger(Repository.class.getName());
+
+    public static void setupPersistence() {
         /** Set up persistence. */
         GITLET_DIR.mkdir();
         REFS_DIR.mkdir();
         BRANCHES_DIR.mkdir();
         OBJECTS_DIR.mkdir();
         STAGE_DIR.mkdir();
-        INDEX.createNewFile();
-        COMMITS.createNewFile();
-        HEAD.createNewFile();
+        try {
+            if (!INDEX.createNewFile()) {
+                LOGGER.log(Level.WARNING,
+                        "File already exists or could not be created: {0}", INDEX.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create the file: " + INDEX.getAbsolutePath(), e);
+            return;
+        }
+        try {
+            if (!COMMITS.createNewFile()) {
+                LOGGER.log(Level.WARNING,
+                        "File already exists or could not be created: {0}", COMMITS.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create the file: " + COMMITS.getAbsolutePath(), e);
+            return;
+        }
+        try {
+            if (!HEAD.createNewFile()) {
+                LOGGER.log(Level.WARNING,
+                        "File already exists or could not be created: {0}", HEAD.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create the file: " + HEAD.getAbsolutePath(), e);
+            return;
+        }
         Utils.writeObject(INDEX, new Stage());
     }
 
@@ -72,7 +100,7 @@ public class Repository{
      * "initial commit". It will have a single branch: master, which initially points to this initial commit,
      * and master will be the current branch.
      */
-    public static void init() throws IOException {
+    public static void init() {
         /** If there is already a Gitlet version-control system in the current directory, abort */
         if (GITLET_DIR.exists()) {
             System.out.println("A Gitlet version-control system already exists in the current directory.");
@@ -91,7 +119,7 @@ public class Repository{
     /**
      * Adds a copy of the file as it currently exists to the staging area.
      */
-    public static void add(String fileName) throws IOException {
+    public static void add(String fileName) {
         File FileToAdd = Utils.join(CWD, fileName);
         if (!FileToAdd.exists()) {
             System.out.println("File does not exist.");
@@ -107,7 +135,7 @@ public class Repository{
         return Commit.getCommitByID(commitID);
     }
 
-    public static void commit(String message) throws IOException {
+    public static void commit(String message) {
         // Read INDEX file.
         Stage stage = Utils.readObject(INDEX, Stage.class);
         if (stage.isToAddEmpty() && stage.isToRemoveEmpty()) {
@@ -283,7 +311,7 @@ public class Repository{
         return Utils.readContentsAsString(HEAD);
     }
 
-    public static void checkout(String[] args) throws IOException {
+    public static void checkout(String[] args) {
         if (args.length == 1) {
             String branch = args[0];
             if (Repository.untrackedFileExist()) {
@@ -325,7 +353,7 @@ public class Repository{
     /** Takes the version of the file as it exists in the commit with the given id,
      * and puts it in the working directory, overwriting the version of the file
      * that’s already there if there is one. The new version of the file is not staged. */
-    private static void checkoutFileInCommit(String commitId, String fileName) throws IOException {
+    private static void checkoutFileInCommit(String commitId, String fileName) {
         Commit commit = Commit.getCommitByID(commitId);
         if (commit == null) {
             System.out.println("No commit with that id exists.");
@@ -343,7 +371,7 @@ public class Repository{
     /** Takes the version of the file as it exists in the head commit and puts it
      * in the working directory, overwriting the version of the file that’s already there
      * if there is one. The new version of the file is not staged. */
-    private static void checkoutFile(String fileName) throws IOException {
+    private static void checkoutFile(String fileName) {
         File currentFile = Utils.join(CWD, fileName);
         Commit currentCommit = Repository.getCurrentCommit();
         if (!currentCommit.containsFile(fileName)) {
@@ -360,7 +388,7 @@ public class Repository{
      * now be considered the current branch (HEAD). Any files that are tracked in the
      * current branch but are not present in the checked-out branch are deleted.
      * The staging area is cleared, unless the checked-out branch is the current branch. */
-    private static void checkoutBranch(String branch) throws IOException {
+    private static void checkoutBranch(String branch) {
         File branchFile = Utils.join(BRANCHES_DIR, branch);
         String commitId = Utils.readContentsAsString(branchFile);
         Commit commit = Commit.getCommitByID(commitId);
@@ -379,13 +407,21 @@ public class Repository{
         }
     }
 
-    public static void branch(String branchName) throws IOException {
+    public static void branch(String branchName) {
         if (Repository.branchExists(branchName)) {
             System.out.println("A branch with that name already exists.");
             return;
         }
         File branch = Utils.join(BRANCHES_DIR, branchName);
-        branch.createNewFile();
+        try {
+            if (!branch.createNewFile()) {
+                LOGGER.log(Level.WARNING,
+                        "File already exists or could not be created: {0}", branch.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Failed to create the file: " + branch.getAbsolutePath(), e);
+            return;
+        }
         Utils.writeContents(branch, Repository.getCurrentCommit());
     }
 
@@ -411,7 +447,7 @@ public class Repository{
         Utils.restrictedDelete(branch);
     }
 
-    public static void reset(String commitId) throws IOException {
+    public static void reset(String commitId) {
         Commit commit = Commit.getCommitByID(commitId);
         for (String fileName : commit.getFileNames()) {
             String[] args = new String[]{commitId, "--", fileName};
