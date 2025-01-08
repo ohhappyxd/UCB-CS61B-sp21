@@ -27,7 +27,7 @@ public class Stage implements Serializable {
 
     private void addFile(String fileName) {
         File FileToAdd = Utils.join(CWD, fileName);
-        String sha1ToAdd = SerializeUtils.generateSHA1FromFile(FileToAdd);
+        String sha1ToAdd = GitletUtils.generateSHA1FromFile(FileToAdd);
         /** If the current working version of the file is identical to the version in the current commit,
          * do not stage it to be added, and remove it from the staging area if it is already there.
          * The file will no longer be staged for removal, if it was at the time of the command.
@@ -43,9 +43,9 @@ public class Stage implements Serializable {
             this.toRemove.remove(fileName);
         }
         /** Write content of the file to be added to the staging area. */
-        File Folder = Utils.join(STAGE_DIR, SerializeUtils.getDirFromID(sha1ToAdd));
+        File Folder = Utils.join(STAGE_DIR, GitletUtils.getDirFromID(sha1ToAdd));
         Folder.mkdir();
-        File AddFile = Utils.join(Folder,SerializeUtils.getFileNameFromID(sha1ToAdd));
+        File AddFile = Utils.join(Folder, GitletUtils.getFileNameFromID(sha1ToAdd));
         try {
             if (!AddFile.createNewFile()) {
                 LOGGER.log(Level.WARNING,
@@ -105,9 +105,9 @@ public class Stage implements Serializable {
             String file = entry.getKey();
             String sha1 = entry.getValue();
             File fileSrc = Utils.join(CWD, file);
-            File dirDst = Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1));
+            File dirDst = Utils.join(OBJECTS_DIR, GitletUtils.getDirFromID(sha1));
             dirDst.mkdir();
-            File fileDst = Utils.join(dirDst, SerializeUtils.getFileNameFromID(sha1));
+            File fileDst = Utils.join(dirDst, GitletUtils.getFileNameFromID(sha1));
             try {
                 if (!fileDst.createNewFile()) {
                     LOGGER.log(Level.WARNING, "File already exists or could not be created: {0}", fileDst.getAbsolutePath());
@@ -137,8 +137,8 @@ public class Stage implements Serializable {
     public void deleteFileFromStage(String fileName) {
         /** Write content of the file to be added to the staging area. */
         String sha1ToDel = this.toAdd.get(fileName);
-        File Folder = Utils.join(STAGE_DIR, SerializeUtils.getDirFromID(sha1ToDel));
-        File FileToDelete = Utils.join(Folder,SerializeUtils.getFileNameFromID(sha1ToDel));
+        File Folder = Utils.join(STAGE_DIR, GitletUtils.getDirFromID(sha1ToDel));
+        File FileToDelete = Utils.join(Folder, GitletUtils.getFileNameFromID(sha1ToDel));
         Utils.restrictedDelete(FileToDelete);
     }
 

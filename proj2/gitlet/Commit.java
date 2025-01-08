@@ -13,11 +13,9 @@ import java.util.logging.Logger;
 
 import static gitlet.Utils.join;
 import static gitlet.Repository.CWD;
-import static gitlet.Repository.GITLET_DIR;
 import static gitlet.Repository.COMMITS;
 import static gitlet.Repository.BRANCHES_DIR;
 import static gitlet.Repository.OBJECTS_DIR;
-import static gitlet.Repository.HEAD;
 
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
@@ -54,7 +52,7 @@ public class Commit implements Serializable {
         this.timestamp = timestamp;
         /** The field blobs maps file names to their SHA-1 hash. */
         this.blobs = new HashMap<>();
-        this.id = SerializeUtils.generateSHA1FromObject(this);
+        this.id = GitletUtils.generateSHA1FromObject(this);
     }
 
     /** Creates a new commit, copying the blobs map from parent commit,
@@ -65,23 +63,23 @@ public class Commit implements Serializable {
         Commit lastCommit = Repository.getCurrentCommit();
         this.blobs = new HashMap<>(lastCommit.blobs);
         this.parent1 = lastCommit.id;
-        this.id = SerializeUtils.generateSHA1FromObject(this);
+        this.id = GitletUtils.generateSHA1FromObject(this);
     }
 
     // Returns the commit object by the ID id, returns null if such commit doesn't exist.
     public static Commit getCommitByID(String id) {
         if (id.length() == 40) {
-            String folder = SerializeUtils.getDirFromID(id);
-            String fileName = SerializeUtils.getFileNameFromID(id);
+            String folder = GitletUtils.getDirFromID(id);
+            String fileName = GitletUtils.getFileNameFromID(id);
             File commitFile = Utils.join(OBJECTS_DIR, folder, fileName);
             if (commitFile.exists()) {
                 return Utils.readObject(commitFile, Commit.class);
             }
         } else if (id.length() < 40 && !id.isEmpty()) {
-            String folder = SerializeUtils.getDirFromID(id);
+            String folder = GitletUtils.getDirFromID(id);
             if (Utils.plainFilenamesIn(Utils.join(OBJECTS_DIR, folder)) != null) {
                 for (String fileName : Utils.plainFilenamesIn(Utils.join(OBJECTS_DIR, folder))) {
-                    if (fileName.contains(SerializeUtils.getFileNameFromID(id))) {
+                    if (fileName.contains(GitletUtils.getFileNameFromID(id))) {
                         return Utils.readObject(Utils.join(OBJECTS_DIR, folder, fileName), Commit.class);
                     }
                 }
@@ -93,10 +91,10 @@ public class Commit implements Serializable {
     /* TODO: fill in the rest of this class. */
     //Saves the commit object.
     public void saveCommit() {
-        String folder = SerializeUtils.getDirFromID(this.id);
+        String folder = GitletUtils.getDirFromID(this.id);
         File dir = Utils.join(OBJECTS_DIR, folder);
         dir.mkdir();
-        String fileName = SerializeUtils.getFileNameFromID(this.id);
+        String fileName = GitletUtils.getFileNameFromID(this.id);
         File outFile = Utils.join(dir, fileName);
         try {
             if (!outFile.createNewFile()) {
@@ -148,7 +146,7 @@ public class Commit implements Serializable {
             String fileName = entry.getKey();
             String sha1 = entry.getValue();
             File currentFile = Utils.join(CWD, fileName);
-            File newFile = Utils.join(SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
+            File newFile = Utils.join(GitletUtils.getDirFromID(sha1), GitletUtils.getFileNameFromID(sha1));
             Utils.writeContents(currentFile, Utils.readContents(newFile));
         }
 
@@ -157,7 +155,7 @@ public class Commit implements Serializable {
     // Returns a File object with the name fileName.
     public File getFileByName(String fileName) {
         String sha1 = this.getSha1(fileName);
-        return Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(sha1), SerializeUtils.getFileNameFromID(sha1));
+        return Utils.join(OBJECTS_DIR, GitletUtils.getDirFromID(sha1), GitletUtils.getFileNameFromID(sha1));
     }
 
     // Returns names of all files saved in this commit as array.

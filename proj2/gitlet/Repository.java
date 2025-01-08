@@ -198,8 +198,8 @@ public class Repository{
         String log = "";
 
         while (currentCommitId != null) {
-            Commit currentCommit = Utils.readObject(Utils.join(OBJECTS_DIR, SerializeUtils.getDirFromID(currentCommitId),
-                    SerializeUtils.getFileNameFromID(currentCommitId)), Commit.class);
+            Commit currentCommit = Utils.readObject(Utils.join(OBJECTS_DIR, GitletUtils.getDirFromID(currentCommitId),
+                    GitletUtils.getFileNameFromID(currentCommitId)), Commit.class);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
             String formattedDate = formatter.format(currentCommit.timestamp);
             log = log + "===" + "\n" + "commit " + currentCommitId + "\n";
@@ -223,8 +223,8 @@ public class Repository{
         while (!commitIds.isEmpty()) {
             String nextCommit = commitIds.substring(commitIds.length()-40);
             Commit commit = Utils.readObject(Utils.join(OBJECTS_DIR,
-                    SerializeUtils.getDirFromID(nextCommit),
-                    SerializeUtils.getFileNameFromID(nextCommit)), Commit.class);
+                    GitletUtils.getDirFromID(nextCommit),
+                    GitletUtils.getFileNameFromID(nextCommit)), Commit.class);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss yyyy Z", Locale.ENGLISH);
             String formattedDate = formatter.format(commit.timestamp);
             log = log + "===" + "\n" + "commit " + nextCommit + "\n";
@@ -449,6 +449,10 @@ public class Repository{
 
     public static void reset(String commitId) {
         Commit commit = Commit.getCommitByID(commitId);
+        if (commit == null) {
+            System.out.println("No commit with that id exists.");
+            return;
+        }
         for (String fileName : commit.getFileNames()) {
             String[] args = new String[]{commitId, "--", fileName};
             Repository.checkout(args);
@@ -457,6 +461,24 @@ public class Repository{
         Utils.writeContents(Utils.join(BRANCHES_DIR, branch), commit.id);
         Stage stage = Utils.readObject(INDEX, Stage.class);
         stage.clear();
+
+    }
+
+    public static void merge(String branchName) {
+        String currentBranch = Utils.readContentsAsString(HEAD);
+        String givenBranch = Utils.readContentsAsString(Utils.join(BRANCHES_DIR, branchName));
+        String commonAncestor = GitletUtils.findCmnAncestor(givenBranch, currentBranch);
+        if (commonAncestor.equals(givenBranch)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+        } else if (commonAncestor.equals(currentBranch)) {
+            checkoutBranch(branchName);
+            System.out.println("Current branch fast-forwarded.");
+        } else {
+            // Any files that have been modified in the given branch since the split point,
+            // but not modified in the current branch since the split point should be changed to
+            // their versions in the given branch (checked out from the commit at the front of the given branch).
+            // These files should then all be automatically staged.
+        }
 
     }
 }

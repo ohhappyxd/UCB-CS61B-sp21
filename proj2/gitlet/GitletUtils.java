@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 
 /** Converts an object to a byte array, used for generating of SHA-1 hash. */
-public class SerializeUtils {
+public class GitletUtils {
     public static byte[] toByteArray(Object obj) {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
              ObjectOutputStream oos = new ObjectOutputStream(bos)) {
@@ -33,5 +33,9 @@ public class SerializeUtils {
 
     public static String getFileNameFromID(String id) {
         return id.substring(2);
+    }
+
+    public static String findCmnAncestor(String branchName, String crrBranch) {
+        return "TODO";
     }
 }
