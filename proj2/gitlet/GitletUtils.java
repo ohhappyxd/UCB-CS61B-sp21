@@ -35,7 +35,5 @@ public class GitletUtils {
         return id.substring(2);
     }
 
-    public static String findCmnAncestor(String branchName, String crrBranch) {
-        return "TODO";
-    }
+
 }

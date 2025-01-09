@@ -467,18 +467,63 @@ public class Repository{
     public static void merge(String branchName) {
         String currentBranch = Utils.readContentsAsString(HEAD);
         String givenBranch = Utils.readContentsAsString(Utils.join(BRANCHES_DIR, branchName));
-        String commonAncestor = GitletUtils.findCmnAncestor(givenBranch, currentBranch);
+        String commonAncestor = findCmnAncestor(givenBranch, currentBranch);
         if (commonAncestor.equals(givenBranch)) {
             System.out.println("Given branch is an ancestor of the current branch.");
         } else if (commonAncestor.equals(currentBranch)) {
             checkoutBranch(branchName);
             System.out.println("Current branch fast-forwarded.");
         } else {
-            // Any files that have been modified in the given branch since the split point,
-            // but not modified in the current branch since the split point should be changed to
-            // their versions in the given branch (checked out from the commit at the front of the given branch).
-            // These files should then all be automatically staged.
+            Commit givenCommit = Commit.getCommitByID(givenBranch);
+            Commit currentCommit = Commit.getCommitByID(currentBranch);
+            Commit ancestorCommit = Commit.getCommitByID(commonAncestor);
+            if (givenCommit == null || currentCommit == null || ancestorCommit == null) {
+                System.out.println("Failed to get commit file");
+            } else {
+                for (String fileName : givenCommit.getFileNames()) {
+                    String givenSha1 = givenCommit.getSha1(fileName);
+                    String ancestorSha1 = ancestorCommit.getSha1(fileName);
+                    String currentSha1 = currentCommit.getSha1(fileName);
+                    // Any files that have been modified in the given branch since the split point,
+                    // but not modified in the current branch since the split point should be changed to
+                    // their versions in the given branch (checked out from the commit at the front of the given branch).
+                    // These files should then all be automatically staged.
+                    if (!givenSha1.equals(ancestorSha1) && currentSha1.equals(ancestorSha1)) {
+                        checkoutFileInCommit(givenBranch, fileName);
+                        Stage.add(fileName);
+                    }
+                    // Any files that were not present at the split point and are present
+                    // only in the given branch should be checked out and staged.
+                    if (ancestorSha1.isEmpty() && currentSha1.isEmpty()) {
+                        checkoutFileInCommit(givenBranch, fileName);
+                        Stage.add(fileName);
+                    }
+                    // Any files modified in different ways in the current and given branches are in conflict.
+                    // “Modified in different ways” can mean that the contents of both are changed and
+                    // different from other, or the contents of one are changed and the other file is deleted,
+                    // or the file was absent at the split point and has different contents in the given
+                    // and current branches. In this case, replace the contents of the conflicted file with
+
+
+                }
+                for (String fileName : currentCommit.getFileNames()) {
+                    String givenSha1 = givenCommit.getSha1(fileName);
+                    String ancestorSha1 = ancestorCommit.getSha1(fileName);
+                    String currentSha1 = currentCommit.getSha1(fileName);
+                    // Any files present at the split point, unmodified in the current branch,
+                    // and absent in the given branch should be removed (and untracked).
+                    if (!ancestorSha1.isEmpty() && ancestorSha1.equals(currentSha1) && givenSha1.isEmpty()) {
+                        Repository.rm(fileName);
+
+                    }
+                }
+            }
+
         }
 
+    }
+
+    public static String findCmnAncestor(String branchName, String crrBranch) {
+        return "TODO";
     }
 }
