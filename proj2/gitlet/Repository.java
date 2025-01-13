@@ -468,9 +468,9 @@ public class Repository{
         String currentBranch = Utils.readContentsAsString(HEAD);
         String givenBranch = Utils.readContentsAsString(Utils.join(BRANCHES_DIR, branchName));
         String commonAncestor = findCmnAncestor(givenBranch, currentBranch);
-        if (commonAncestor.equals(givenBranch)) {
+        if (commonAncestor != null && commonAncestor.equals(givenBranch)) {
             System.out.println("Given branch is an ancestor of the current branch.");
-        } else if (commonAncestor.equals(currentBranch)) {
+        } else if (commonAncestor != null && commonAncestor.equals(currentBranch)) {
             checkoutBranch(branchName);
             System.out.println("Current branch fast-forwarded.");
         } else {
@@ -523,7 +523,25 @@ public class Repository{
 
     }
 
-    public static String findCmnAncestor(String branchName, String crrBranch) {
-        return "TODO";
-    }
+    public static String findCmnAncestor(String gvnBranch, String currBranch) {
+        ArrayList<String> historyGB = new ArrayList<>();
+        ArrayList<String> historyCB = new ArrayList<>();
+        Commit gvnCommit = Commit.getCommitByID(gvnBranch);
+        Commit currCommit = Commit.getCommitByID(currBranch);
+        while (gvnCommit != null) {
+            historyGB.add(gvnCommit.parent1);
+            gvnCommit = Commit.getCommitByID(gvnCommit.parent1);
+        }
+        while (currCommit != null) {
+            historyCB.add(gvnCommit.parent1);
+            currCommit = Commit.getCommitByID(currCommit.parent1);
+        }
+        for (String commitId : historyCB) {
+            if (historyGB.contains(commitId)) {
+                return commitId;
+            }
+        }
+        return null;
+        }
+
 }
