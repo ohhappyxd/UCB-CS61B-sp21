@@ -465,6 +465,12 @@ public class Repository{
     }
 
     public static void merge(String branchName) {
+        Stage stage = Utils.readObject(INDEX, Stage.class);
+        if (!stage.isToAddEmpty() || !stage.isToRemoveEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+        Boolean conflict = false;
         String currentBranch = Utils.readContentsAsString(HEAD);
         String givenBranch = Utils.readContentsAsString(Utils.join(BRANCHES_DIR, branchName));
         String commonAncestor = findCmnAncestor(givenBranch, currentBranch);
@@ -503,8 +509,20 @@ public class Repository{
                     // different from other, or the contents of one are changed and the other file is deleted,
                     // or the file was absent at the split point and has different contents in the given
                     // and current branches. In this case, replace the contents of the conflicted file with
-
-
+                    if (!currentSha1.equals(givenSha1)) {
+                        String currContent = Utils.readContentsAsString(Utils.join(OBJECTS_DIR,
+                                GitletUtils.getDirFromID(currentSha1), GitletUtils.getFileNameFromID(currentSha1)));
+                        String gvnContent = Utils.readContentsAsString(Utils.join(OBJECTS_DIR,
+                                GitletUtils.getDirFromID(givenSha1), GitletUtils.getFileNameFromID(givenSha1)));
+                        Utils.writeContents(Utils.join(CWD, fileName), "<<<<<<< HEAD", "/n", currContent,
+                                "=======", gvnContent, ">>>>>>>");
+                        conflict = true;
+                        Stage.add(fileName);
+                    }
+                    Repository.commit("Merged " + givenBranch + "into" + currentBranch + ".");
+                    if (conflict) {
+                        System.out.println("Encountered a merge conflict.");
+                    }
                 }
                 for (String fileName : currentCommit.getFileNames()) {
                     String givenSha1 = givenCommit.getSha1(fileName);
