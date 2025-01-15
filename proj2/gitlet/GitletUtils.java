@@ -35,5 +35,4 @@ public class GitletUtils {
         return id.substring(2);
     }
 
-
 }

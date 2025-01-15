@@ -465,14 +465,29 @@ public class Repository{
     }
 
     public static void merge(String branchName) {
+        if (Repository.untrackedFileExist()) {
+            System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+            System.exit(0);
+        }
         Stage stage = Utils.readObject(INDEX, Stage.class);
+        String currentBranchName = Repository.getCurrentBranch();
+        File givenBranchFile = Utils.join(BRANCHES_DIR, branchName);
         if (!stage.isToAddEmpty() || !stage.isToRemoveEmpty()) {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
-        Boolean conflict = false;
-        String currentBranch = Utils.readContentsAsString(HEAD);
-        String givenBranch = Utils.readContentsAsString(Utils.join(BRANCHES_DIR, branchName));
+        if (!givenBranchFile.exists()) {
+            System.out.println("A branch with that name does not exist.");
+            return;
+        }
+        if (branchName.equals(currentBranchName)) {
+            System.out.println("Cannot merge a branch with itself.");
+            return;
+        }
+
+        boolean conflict = false;
+        String currentBranch = Utils.readContentsAsString(Utils.join(BRANCHES_DIR, currentBranchName));
+        String givenBranch = Utils.readContentsAsString(givenBranchFile);
         String commonAncestor = findCmnAncestor(givenBranch, currentBranch);
         if (commonAncestor != null && commonAncestor.equals(givenBranch)) {
             System.out.println("Given branch is an ancestor of the current branch.");
@@ -500,16 +515,26 @@ public class Repository{
                     }
                     // Any files that were not present at the split point and are present
                     // only in the given branch should be checked out and staged.
-                    if (ancestorSha1.isEmpty() && currentSha1.isEmpty()) {
+                    if (ancestorSha1.isEmpty() && currentSha1.isEmpty() && !givenSha1.isEmpty()) {
                         checkoutFileInCommit(givenBranch, fileName);
                         Stage.add(fileName);
+                    }
+                    // Any files present at the split point, unmodified in the current branch,
+                    // and absent in the given branch should be removed (and untracked).
+                    if (!ancestorSha1.isEmpty() && ancestorSha1.equals(currentSha1) && givenSha1.isEmpty()) {
+                        Repository.rm(fileName);
                     }
                     // Any files modified in different ways in the current and given branches are in conflict.
                     // “Modified in different ways” can mean that the contents of both are changed and
                     // different from other, or the contents of one are changed and the other file is deleted,
                     // or the file was absent at the split point and has different contents in the given
                     // and current branches. In this case, replace the contents of the conflicted file with
-                    if (!currentSha1.equals(givenSha1)) {
+                    boolean diff = (!ancestorSha1.equals(currentSha1) && !ancestorSha1.equals(givenSha1) &&
+                            !currentSha1.equals(givenSha1)) ||
+                            (!ancestorSha1.equals(currentSha1) && givenSha1.isEmpty()) ||
+                            (ancestorSha1.equals(givenSha1) && currentSha1.isEmpty()) ||
+                            (ancestorSha1.isEmpty() && !currentSha1.equals(givenSha1));
+                    if (diff) {
                         String currContent = Utils.readContentsAsString(Utils.join(OBJECTS_DIR,
                                 GitletUtils.getDirFromID(currentSha1), GitletUtils.getFileNameFromID(currentSha1)));
                         String gvnContent = Utils.readContentsAsString(Utils.join(OBJECTS_DIR,
@@ -524,21 +549,8 @@ public class Repository{
                         System.out.println("Encountered a merge conflict.");
                     }
                 }
-                for (String fileName : currentCommit.getFileNames()) {
-                    String givenSha1 = givenCommit.getSha1(fileName);
-                    String ancestorSha1 = ancestorCommit.getSha1(fileName);
-                    String currentSha1 = currentCommit.getSha1(fileName);
-                    // Any files present at the split point, unmodified in the current branch,
-                    // and absent in the given branch should be removed (and untracked).
-                    if (!ancestorSha1.isEmpty() && ancestorSha1.equals(currentSha1) && givenSha1.isEmpty()) {
-                        Repository.rm(fileName);
-
-                    }
-                }
             }
-
         }
-
     }
 
     public static String findCmnAncestor(String gvnBranch, String currBranch) {
